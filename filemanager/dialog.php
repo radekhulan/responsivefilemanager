@@ -37,6 +37,8 @@ if (isset($_POST['submit'])) {
 
 include 'include/utils.php';
 
+$dark_mode_active = isset($_COOKIE['rfm_dark_mode']) ? $_COOKIE['rfm_dark_mode'] === '1' : !empty($config['dark_mode']);
+
 $subdir_path = '';
 
 if (isset($_GET['fldr']) && !empty($_GET['fldr'])) {
@@ -311,9 +313,7 @@ $get_params = http_build_query($get_params);
         <noscript><link rel="stylesheet" href="style/jquery.fileupload-ui-noscript.css"></noscript>
         <link rel="stylesheet" href="style/vendor/jplayer.blue.monday.min.css" />
         <link href="style/style.css?v=<?php echo $version; ?>" rel="stylesheet" type="text/css" />
-        <?php if (!empty($config['dark_mode'])): ?>
-        <link rel="stylesheet" href="style/style.dark.css">
-        <?php endif; ?>
+        <link id="dark-mode-css" rel="stylesheet" href="style/style.dark.css" <?php if (!$dark_mode_active): ?>disabled<?php endif; ?>>
         <?php if (!empty($config['tui_active'])): ?>
         <!-- TUI Image Editor -->
         <link rel="stylesheet" href="style/tui-image-editor.min.css">
@@ -384,6 +384,20 @@ $get_params = http_build_query($get_params);
                 }
             });
             <?php endif; ?>
+
+            // Dark mode toggle
+            document.addEventListener('DOMContentLoaded', function() {
+                var toggle = document.getElementById('dark-mode-toggle');
+                if (!toggle) return;
+                toggle.addEventListener('click', function() {
+                    var css = document.getElementById('dark-mode-css');
+                    var isDark = !css.disabled;
+                    css.disabled = isDark;
+                    document.getElementById('dm-icon-moon').style.display = isDark ? '' : 'none';
+                    document.getElementById('dm-icon-sun').style.display = isDark ? 'none' : '';
+                    document.cookie = 'rfm_dark_mode=' + (isDark ? '0' : '1') + ';path=/;max-age=' + (86400 * 365);
+                });
+            });
         </script>
 
         <script src="script/include.js?v=<?php echo $version; ?>"></script>
@@ -819,8 +833,12 @@ $files = $sorted;
                 <label id="ff-item-type-all" title="<?php echo trans('All');?>" <?php if($_GET['type']==1 || $_GET['type']==3){ ?>style="visibility: hidden;" <?php } ?> data-item="ff-item-type-all" for="select-type-all" style="margin-rigth:0px;" class="tip btn btn-inverse ff-label-type-all"><?php echo trans('All');?></label>
 
 <?php if (!empty($config['remove_header'])): ?>
-                <button type="button" class="btn btn-danger pull-right close-dialog-btn" title="<?php echo trans('Close');?>" style="margin-left:10px;"><img class="svg-icon svg-icon-white" src="svg/icon-close.svg" alt=""></button>
+                <button type="button" class="btn btn-danger pull-right close-dialog-btn" title="<?php echo trans('Close');?>"><img class="svg-icon svg-icon-white" src="svg/icon-close.svg" alt=""></button>
 <?php endif; ?>
+                <button type="button" id="dark-mode-toggle" class="btn pull-right tip" title="Dark / Light mode" style="margin-left:4px">
+                    <img id="dm-icon-moon" class="svg-icon" src="svg/icon-moon.svg" alt="" <?php if ($dark_mode_active): ?>style="display:none"<?php endif; ?>>
+                    <img id="dm-icon-sun" class="svg-icon" src="svg/icon-sun.svg" alt="" <?php if (!$dark_mode_active): ?>style="display:none"<?php endif; ?>>
+                </button>
             </div>
             </div>
         </div>
