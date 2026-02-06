@@ -232,7 +232,7 @@ var encodeURL,show_animation,hide_animation,apply,apply_none,apply_img,apply_any
 					{
 						options.items.select = {
 							name: jQuery('#lang_select').val(),
-							icon: "",
+							icon: "folder",
 							disabled: false
 						};
 					}

@@ -29,6 +29,7 @@ figcaption { background: #333 !important; color: #ccc !important; }
 /* Context menu */
 .context-menu-list { background: #3a3a3a !important; border-color: #444 !important; }
 .context-menu-item { background: #3a3a3a !important; color: #ccc !important; }
+.context-menu-html strong { color: #ddd !important; }
 .context-menu-item.hover { background: #4a6a8a !important; }
 .context-menu-separator { border-color: #555 !important; }
 /* Context menu SVG icons - invert to light */
@@ -58,7 +59,9 @@ figcaption { background: #333 !important; color: #ccc !important; }
 .context-menu-item.icon-key::before { background-image: url(../svg/icon-key.svg); }
 .context-menu-item.icon-dimension::before { background-image: url(../svg/icon-dimension.svg); }
 .context-menu-item.icon-size::before { background-image: url(../svg/icon-size.svg); }
+.context-menu-item.icon-label::before { background-image: url(../svg/icon-label.svg); }
 .context-menu-item.icon-date::before { background-image: url(../svg/icon-date.svg); }
+.context-menu-item.icon-folder::before { background-image: url(../svg/icon-folder.svg); }
 
 /* Inputs */
 input[type="text"], .filter-input { background: #3a3a3a !important; border-color: #555 !important; color: #ddd !important; }
