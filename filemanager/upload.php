@@ -1,5 +1,12 @@
 <?php
 
+// Pokud není co nahrávat, vrátit prázdnou odpověď
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' || (empty($_FILES) && empty($_POST['url']) && !isset($_POST['submit']))) {
+    header('Content-Type: application/json');
+    echo json_encode(array('files' => array()));
+    exit;
+}
+
 try {
     if (!isset($config)) {
         $config = include 'config/config.php';
@@ -67,28 +74,43 @@ try {
     // make sure the length is limited to avoid DOS attacks
     if (isset($_POST['url']) && strlen($_POST['url']) < 2000) {
         $url = $_POST['url'];
-        $urlPattern = '/^(https?:\/\/)?([\da-z\.-]+\.[a-z\.]{2,6}|[\d\.]+)([\/?=&#]{1}[\da-z\.-]+)*[\/\?]?$/i';
+        $urlPattern = '/^https?:\/\/[^\s<>"{}|\\^`\[\]]+$/i';
 
         if (preg_match($urlPattern, $url)) {
-            $temp = tempnam('/tmp','RF');
+            $temp = tempnam(sys_get_temp_dir(), 'RF');
 
             $ch = curl_init($url);
             $fp = fopen($temp, 'wb');
             curl_setopt($ch, CURLOPT_FILE, $fp);
             curl_setopt($ch, CURLOPT_HEADER, 0);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+            curl_setopt($ch, CURLOPT_TIMEOUT, 60);
             curl_exec($ch);
+
             if (curl_errno($ch)) {
+                $error = curl_error($ch);
+                fclose($fp);
                 curl_close($ch);
-                throw new Exception('Invalid URL');
+                throw new Exception('cURL error: ' . $error);
             }
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
             fclose($fp);
 
+            $size = filesize($temp);
+
+            if ($httpCode !== 200) {
+                throw new Exception('HTTP error: ' . $httpCode);
+            }
             $_FILES['files'] = array(
                 'name' => array(basename($_POST['url'])),
                 'tmp_name' => array($temp),
-                'size' => array(filesize($temp)),
-                'type' => null
+                'size' => array($size),
+                'type' => array(null),
+                'error' => array(UPLOAD_ERR_OK)
             );
         } else {
             throw new Exception('Is not a valid URL.');
@@ -138,12 +160,11 @@ try {
         $_FILES['files']['name'][0] = fix_strtolower($_FILES['files']['name'][0]);
     }
     if (!checkresultingsize($_FILES['files']['size'][0])) {
-    	if ( !isset($upload_handler->response['files'][0]) ) {
-            // Avoid " Warning: Creating default object from empty value ... "
-            $upload_handler->response['files'][0] = new stdClass();
-        }
-        $upload_handler->response['files'][0]->error = sprintf(trans('max_size_reached'), $config['MaxSizeTotal']) . AddErrorLocation();
-        echo json_encode($upload_handler->response);
+        $response = new stdClass();
+        $response->files = array();
+        $response->files[0] = new stdClass();
+        $response->files[0]->error = sprintf(trans('max_size_reached'), $config['MaxSizeTotal']) . AddErrorLocation();
+        echo json_encode($response);
         exit();
     }
 

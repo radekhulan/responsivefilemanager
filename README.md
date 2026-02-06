@@ -10,6 +10,9 @@ This is a modernized fork of [ResponsiveFilemanager](https://github.com/trippo/R
 - **TinyMCE 8 Integration** - Native support for TinyMCE version 8.x
 - **Updated JS Libraries** - All JavaScript dependencies updated to their latest versions
 - **Local JS Libraries** - Switched from CDN links to local copies (many CDNs no longer exist or are unreliable)
+- **Optional Dark Mode** - Added a dark mode theme that can be enabled via configuration
+- **SVG Icons** - Replaced legacy raster (PNG) icons with clean, scalable SVG icons
+- **Latest TUI Image Editor** - Bundled the newest version of TUI Image Editor for in-browser image editing
 - **Code Cleanup** - General code cleanup, removed deprecated functions and improved code quality
 
 ---

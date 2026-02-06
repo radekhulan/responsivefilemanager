@@ -92,7 +92,37 @@
 
 ---
 
-## 9. JAVASCRIPT LIBRARIES UPDATE
+## 9. OPTIONAL DARK MODE
+
+**File:** `filemanager/css/style.dark.css`
+
+- Added a complete dark mode theme for the file manager UI
+- Can be enabled via configuration in `config.php`
+- Dark backgrounds, adjusted contrast and colors for comfortable use in low-light environments
+
+---
+
+## 10. SVG ICONS
+
+**Directory:** `filemanager/svg/`
+
+- Replaced all legacy raster (PNG) icons with clean, scalable SVG icons
+- Resolution-independent icons that look sharp on all displays (including HiDPI/Retina)
+- Removed old PNG images from `filemanager/img/`
+
+---
+
+## 11. LATEST TUI IMAGE EDITOR
+
+**Directory:** `filemanager/javascript/vendor/`
+
+- Bundled the newest version of TUI Image Editor for in-browser image editing
+- Includes TUI Color Picker and Fabric.js dependencies
+- Added corresponding CSS files (`tui-image-editor.min.css`, `tui-color-picker.min.css`)
+
+---
+
+## 12. JAVASCRIPT LIBRARIES UPDATE
 
 **Directory:** `filemanager/javascript/`
 
@@ -112,7 +142,7 @@ All JavaScript libraries upgraded to latest versions with local copies (removing
 
 ---
 
-## 10. SECURITY IMPROVEMENTS
+## 13. SECURITY IMPROVEMENTS
 
 - Path traversal prevention in `checkRelativePath()`
 - URL pattern validation
@@ -130,3 +160,6 @@ All JavaScript libraries upgraded to latest versions with local copies (removing
 | **Communication** | window.opener | postMessage |
 | **UTF-8** | Partial | Full support |
 | **JS Libraries** | CDN-based | Local copies |
+| **Theme** | Light only | Light + Dark mode |
+| **Icons** | PNG raster | SVG scalable |
+| **Image Editor** | Old TUI version | Latest TUI Image Editor |

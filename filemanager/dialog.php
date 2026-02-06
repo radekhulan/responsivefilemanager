@@ -322,6 +322,18 @@ $get_params = http_build_query($get_params);
         <noscript><link rel="stylesheet" href="css/jquery.fileupload-ui-noscript.css"></noscript>
         <link rel="stylesheet" href="css/vendor/jplayer.blue.monday.min.css" />
         <link href="css/style.css?v=<?php echo $version; ?>" rel="stylesheet" type="text/css" />
+        <?php if (!empty($config['dark_mode'])): ?>
+        <link rel="stylesheet" href="css/style.dark.css">
+        <?php endif; ?>
+        <?php if (!empty($config['tui_active'])): ?>
+        <!-- TUI Image Editor -->
+        <link rel="stylesheet" href="css/tui-image-editor.min.css">
+        <link rel="stylesheet" href="css/tui-color-picker.min.css">
+        <style>
+            .tui-image-editor-header-buttons,
+            .tui-image-editor-header-logo { display: none !important; }
+        </style>
+        <?php endif; ?>
 
         <script src="javascript/vendor/jquery-3.7.1.min.js"></script>
         <script src="javascript/vendor/jquery-migrate-3.5.2.min.js"></script>
@@ -329,9 +341,16 @@ $get_params = http_build_query($get_params);
         <script src="javascript/plugins.js?v=<?php echo $version; ?>"></script>
         <script src="javascript/vendor/jquery.jplayer.min.js"></script>
 
+        <?php if (!empty($config['tui_active'])): ?>
+        <!-- TUI Image Editor JS (defer keeps order but loads in parallel) -->
+        <script defer src="javascript/vendor/fabric.min.js"></script>
+        <script defer src="javascript/vendor/tui-color-picker.min.js"></script>
+        <script defer src="javascript/vendor/tui-image-editor.min.js"></script>
+        <?php endif; ?>
+
         <script type="text/javascript">
             var ext_img=new Array('<?php echo implode("','", $config['ext_img'])?>');
-            var image_editor = false;
+            var image_editor = null;
             // Modernizr fallback - detect touch and CSS transforms
             var Modernizr = {
                 touch: ('ontouchstart' in window) || (navigator.maxTouchPoints > 0),
@@ -340,8 +359,43 @@ $get_params = http_build_query($get_params);
                     return 'transform' in el.style || 'webkitTransform' in el.style || 'MozTransform' in el.style;
                 })()
             };
-        </script>
 
+            // Initialize TUI Image Editor after DOM ready
+            <?php if (!empty($config['tui_active'])): ?>
+            document.addEventListener('DOMContentLoaded', function() {
+                var editorContainer = document.getElementById('tui-image-editor');
+                if (editorContainer && typeof tui !== 'undefined' && tui.ImageEditor) {
+                    // Set fabric.js to use crossOrigin for all images
+                    if (typeof fabric !== 'undefined') {
+                        fabric.Image.prototype.crossOrigin = 'anonymous';
+                    }
+
+                    image_editor = new tui.ImageEditor(editorContainer, {
+                        includeUI: {
+                            loadImage: {
+                                path: '',
+                                name: 'Blank'
+                            },
+                            menu: ['crop', 'flip', 'rotate', 'draw', 'shape', 'text', 'filter'],
+                            initMenu: '',
+                            uiSize: {
+                                width: '100%',
+                                height: '100%'
+                            },
+                            menuBarPosition: '<?php echo $config['tui_position'] ?? 'bottom'; ?>'
+                        },
+                        cssMaxWidth: 1200,
+                        cssMaxHeight: 800,
+                        usageStatistics: false,
+                        selectionStyle: {
+                            cornerSize: 20,
+                            rotatingPointOffset: 70
+                        }
+                    });
+                }
+            });
+            <?php endif; ?>
+        </script>
 
         <script src="javascript/include.js?v=<?php echo $version; ?>"></script>
 </head>
@@ -439,9 +493,9 @@ $get_params = http_build_query($get_params);
 <div class="uploader">
     <div class="flex">
         <div class="text-center">
-            <button class="btn btn-inverse close-uploader"><i class="icon-backward icon-white"></i> <?php echo trans('Return_Files_List')?></button>
+            <button class="btn btn-inverse close-uploader"><img class="svg-icon svg-icon-white" src="svg/icon-back.svg" alt=""> <?php echo trans('Return_Files_List')?></button>
             <span class="btn btn-success fileinput-button">
-                <i class="glyphicon glyphicon-plus"></i>
+                <img class="svg-icon svg-icon-white" src="svg/icon-plus.svg" alt="">
                 <span><?php echo trans('Upload_add_files');?></span>
                 <input type="file" name="files[]" multiple="multiple" form="fileupload">
             </span>
@@ -496,13 +550,13 @@ $get_params = http_build_query($get_params);
                             <td>
                                 {% if (!i && !o.options.autoUpload) { %}
                                     <button class="btn btn-primary start" disabled style="display:none">
-                                        <i class="glyphicon glyphicon-upload"></i>
+                                        <img class="svg-icon svg-icon-white" src="svg/icon-upload.svg" alt="">
                                         <span>Start</span>
                                     </button>
                                 {% } %}
                                 {% if (!i) { %}
                                     <button class="btn btn-link cancel">
-                                        <i class="icon-remove"></i>
+                                        <img class="svg-icon" src="svg/icon-remove.svg" alt="">
                                     </button>
                                 {% } %}
                             </td>
@@ -516,9 +570,9 @@ $get_params = http_build_query($get_params);
                             <td>
                                 <span class="preview">
                                     {% if (file.error) { %}
-                                    <i class="icon icon-remove"></i>
+                                    <img class="svg-icon" src="svg/icon-remove.svg" alt="">
                                     {% } else { %}
-                                    <i class="icon icon-ok"></i>
+                                    <img class="svg-icon" src="svg/icon-ok.svg" alt="">
                                     {% } %}
                                 </span>
                             </td>
@@ -741,25 +795,25 @@ $files = $sorted;
             <div class="row-fluid">
             <div class="span4 half">
                 <?php if($config['upload_files']){ ?>
-                <button class="tip btn upload-btn" title="<?php echo  trans('Upload_file');?>"><i class="rficon-upload"></i></button>
+                <button class="tip btn upload-btn" title="<?php echo  trans('Upload_file');?>"><img class="svg-icon" src="svg/icon-upload.svg" alt=""></button>
                 <?php } ?>
                 <?php if($config['create_text_files']){ ?>
-                <button class="tip btn create-file-btn" title="<?php echo  trans('New_File');?>"><i class="icon-plus"></i><i class="icon-file"></i></button>
+                <button class="tip btn create-file-btn" title="<?php echo  trans('New_File');?>"><img class="svg-icon" src="svg/icon-plus.svg" alt=""><img class="svg-icon" src="svg/icon-file.svg" alt=""></button>
                 <?php } ?>
                 <?php if($config['create_folders']){ ?>
-                <button class="tip btn new-folder" title="<?php echo  trans('New_Folder')?>"><i class="icon-plus"></i><i class="icon-folder-open"></i></button>
+                <button class="tip btn new-folder" title="<?php echo  trans('New_Folder')?>"><img class="svg-icon" src="svg/icon-plus.svg" alt=""><img class="svg-icon" src="svg/icon-folder.svg" alt=""></button>
                 <?php } ?>
                 <?php if($config['copy_cut_files'] || $config['copy_cut_dirs']){ ?>
-                <button class="tip btn paste-here-btn" title="<?php echo trans('Paste_Here');?>"><i class="rficon-clipboard-apply"></i></button>
-                <button class="tip btn clear-clipboard-btn" title="<?php echo trans('Clear_Clipboard');?>"><i class="rficon-clipboard-clear"></i></button>
+                <button class="tip btn paste-here-btn" title="<?php echo trans('Paste_Here');?>"><img class="svg-icon" src="svg/icon-paste.svg" alt=""></button>
+                <button class="tip btn clear-clipboard-btn" title="<?php echo trans('Clear_Clipboard');?>"><img class="svg-icon" src="svg/icon-delete.svg" alt=""></button>
                 <?php } ?>
                 <div id="multiple-selection" style="display:none;">
                 <?php if($config['multiple_selection']){ ?>
                 <?php if($config['delete_files']){ ?>
-                <button class="tip btn multiple-delete-btn" title="<?php echo trans('Erase');?>" data-confirm="<?php echo trans('Confirm_del');?>"><i class="icon-trash"></i></button>
+                <button class="tip btn multiple-delete-btn" title="<?php echo trans('Erase');?>" data-confirm="<?php echo trans('Confirm_del');?>"><img class="svg-icon" src="svg/icon-trash.svg" alt=""></button>
                 <?php } ?>
-                <button class="tip btn multiple-select-btn" title="<?php echo trans('Select_All');?>"><i class="icon-check"></i></button>
-                <button class="tip btn multiple-deselect-btn" title="<?php echo trans('Deselect_All');?>"><i class="icon-ban-circle"></i></button>
+                <button class="tip btn multiple-select-btn" title="<?php echo trans('Select_All');?>"><img class="svg-icon" src="svg/icon-check.svg" alt=""></button>
+                <button class="tip btn multiple-deselect-btn" title="<?php echo trans('Deselect_All');?>"><img class="svg-icon" src="svg/icon-ban.svg" alt=""></button>
                 <?php if($apply_type!="apply_none" && $config['multiple_selection_action_button']){ ?>
                 <button class="btn multiple-action-btn btn-inverse" data-function="<?php echo $apply_type;?>"><?php echo trans('Select'); ?></button>
                 <?php } ?>
@@ -767,39 +821,42 @@ $files = $sorted;
                 </div>
             </div>
             <div class="span2 half view-controller">
-                <button class="btn tip<?php if($view==0) echo " btn-inverse";?>" id="view0" data-value="0" title="<?php echo trans('View_boxes');?>"><i class="icon-th <?php if($view==0) echo "icon-white";?>"></i></button>
-                <button class="btn tip<?php if($view==1) echo " btn-inverse";?>" id="view1" data-value="1" title="<?php echo trans('View_list');?>"><i class="icon-align-justify <?php if($view==1) echo "icon-white";?>"></i></button>
-                <button class="btn tip<?php if($view==2) echo " btn-inverse";?>" id="view2" data-value="2" title="<?php echo trans('View_columns_list');?>"><i class="icon-fire <?php if($view==2) echo "icon-white";?>"></i></button>
+                <button class="btn tip<?php if($view==0) echo " btn-inverse";?>" id="view0" data-value="0" title="<?php echo trans('View_boxes');?>"><img class="svg-icon<?php if($view==0) echo " svg-icon-white";?>" src="svg/icon-grid.svg" alt=""></button>
+                <button class="btn tip<?php if($view==1) echo " btn-inverse";?>" id="view1" data-value="1" title="<?php echo trans('View_list');?>"><img class="svg-icon<?php if($view==1) echo " svg-icon-white";?>" src="svg/icon-list.svg" alt=""></button>
+                <button class="btn tip<?php if($view==2) echo " btn-inverse";?>" id="view2" data-value="2" title="<?php echo trans('View_columns_list');?>"><img class="svg-icon<?php if($view==2) echo " svg-icon-white";?>" src="svg/icon-columns.svg" alt=""></button>
             </div>
             <div class="span6 entire types">
                 <span><?php echo trans('Filters');?>:</span>
                 <?php if($_GET['type']!=1 && $_GET['type']!=3 && $config['show_filter_buttons']){ ?>
                     <?php if(count($config['ext_file'])>0 or false){ ?>
                 <input id="select-type-1" name="radio-sort" type="radio" data-item="ff-item-type-1" checked="checked"  class="hide"  />
-                <label id="ff-item-type-1" title="<?php echo trans('Files');?>" for="select-type-1" class="tip btn ff-label-type-1"><i class="icon-file"></i></label>
+                <label id="ff-item-type-1" title="<?php echo trans('Files');?>" for="select-type-1" class="tip btn ff-label-type-1"><img class="svg-icon" src="svg/icon-file.svg" alt=""></label>
                     <?php } ?>
                     <?php if(count($config['ext_img'])>0 or false){ ?>
                 <input id="select-type-2" name="radio-sort" type="radio" data-item="ff-item-type-2" class="hide"  />
-                <label id="ff-item-type-2" title="<?php echo trans('Images');?>" for="select-type-2" class="tip btn ff-label-type-2"><i class="icon-picture"></i></label>
+                <label id="ff-item-type-2" title="<?php echo trans('Images');?>" for="select-type-2" class="tip btn ff-label-type-2"><img class="svg-icon" src="svg/icon-picture.svg" alt=""></label>
                     <?php } ?>
                     <?php if(count($config['ext_misc'])>0 or false){ ?>
                 <input id="select-type-3" name="radio-sort" type="radio" data-item="ff-item-type-3" class="hide"  />
-                <label id="ff-item-type-3" title="<?php echo trans('Archives');?>" for="select-type-3" class="tip btn ff-label-type-3"><i class="icon-inbox"></i></label>
+                <label id="ff-item-type-3" title="<?php echo trans('Archives');?>" for="select-type-3" class="tip btn ff-label-type-3"><img class="svg-icon" src="svg/icon-archive.svg" alt=""></label>
                     <?php } ?>
                     <?php if(count($config['ext_video'])>0 or false){ ?>
                 <input id="select-type-4" name="radio-sort" type="radio" data-item="ff-item-type-4" class="hide"  />
-                <label id="ff-item-type-4" title="<?php echo trans('Videos');?>" for="select-type-4" class="tip btn ff-label-type-4"><i class="icon-film"></i></label>
+                <label id="ff-item-type-4" title="<?php echo trans('Videos');?>" for="select-type-4" class="tip btn ff-label-type-4"><img class="svg-icon" src="svg/icon-film.svg" alt=""></label>
                     <?php } ?>
                     <?php if(count($config['ext_music'])>0 or false){ ?>
                 <input id="select-type-5" name="radio-sort" type="radio" data-item="ff-item-type-5" class="hide"  />
-                <label id="ff-item-type-5" title="<?php echo trans('Music');?>" for="select-type-5" class="tip btn ff-label-type-5"><i class="icon-music"></i></label>
+                <label id="ff-item-type-5" title="<?php echo trans('Music');?>" for="select-type-5" class="tip btn ff-label-type-5"><img class="svg-icon" src="svg/icon-music.svg" alt=""></label>
                     <?php } ?>
                 <?php } ?>
-                <input accesskey="f" type="text" class="filter-input <?php echo (($_GET['type']!=1 && $_GET['type']!=3) ? '' : 'filter-input-notype');?>" id="filter-input" name="filter" placeholder="<?php echo fix_strtolower(trans('Text_filter'));?>..." value="<?php echo $filter;?>"/><?php if($n_files>$config['file_number_limit_js']){ ?><label id="filter" class="btn"><i class="icon-play"></i></label><?php } ?>
+                <input accesskey="f" type="text" class="filter-input <?php echo (($_GET['type']!=1 && $_GET['type']!=3) ? '' : 'filter-input-notype');?>" id="filter-input" name="filter" placeholder="<?php echo fix_strtolower(trans('Text_filter'));?>..." value="<?php echo $filter;?>"/><?php if($n_files>$config['file_number_limit_js']){ ?><label id="filter" class="btn"><img class="svg-icon" src="svg/icon-play.svg" alt=""></label><?php } ?>
 
                 <input id="select-type-all" name="radio-sort" type="radio" data-item="ff-item-type-all" class="hide"  />
                 <label id="ff-item-type-all" title="<?php echo trans('All');?>" <?php if($_GET['type']==1 || $_GET['type']==3){ ?>style="visibility: hidden;" <?php } ?> data-item="ff-item-type-all" for="select-type-all" style="margin-rigth:0px;" class="tip btn btn-inverse ff-label-type-all"><?php echo trans('All');?></label>
 
+<?php if (!empty($config['remove_header'])): ?>
+                <button type="button" class="btn btn-danger pull-right close-dialog-btn" title="<?php echo trans('Close');?>" style="margin-left:10px;"><img class="svg-icon svg-icon-white" src="svg/icon-close.svg" alt=""></button>
+<?php endif; ?>
             </div>
             </div>
         </div>
@@ -817,7 +874,7 @@ $files = $sorted;
     $link = "dialog.php?" . $get_params;
     ?>
     <ul class="breadcrumb">
-    <li class="pull-left"><a href="<?php echo $link?>/"><i class="icon-home"></i></a></li>
+    <li class="pull-left"><a href="<?php echo $link?>/"><img class="svg-icon" src="svg/icon-home.svg" alt=""></a></li>
     <li><span class="divider">/</span></li>
     <?php
     $bc=explode("/",$subdir);
@@ -834,14 +891,14 @@ $files = $sorted;
     ?>
 
     <?php if($config['show_language_selection']){ ?>
-    <li class="pull-right"><a class="btn-small" href="javascript:void('')" id="change_lang_btn"><i class="icon-globe"></i></a></li>
+    <li class="pull-right"><a class="btn-small" href="javascript:void('')" id="change_lang_btn"><img class="svg-icon" src="svg/icon-globe.svg" alt=""></a></li>
     <?php } ?>
-    <li class="pull-right"><a id="refresh" class="btn-small" href="dialog.php?<?php echo $get_params.$subdir."&".uniqid() ?>"><i class="icon-refresh"></i></a></li>
+    <li class="pull-right"><a id="refresh" class="btn-small" href="dialog.php?<?php echo $get_params.$subdir."&".uniqid() ?>"><img class="svg-icon" src="svg/icon-refresh.svg" alt=""></a></li>
 
 	<li class="pull-right">
 		<div class="btn-group">
 		<a class="btn dropdown-toggle sorting-btn" data-toggle="dropdown" href="#">
-		<i class="icon-signal"></i>
+		<img class="svg-icon" src="svg/icon-sort.svg" alt="">
 		<span class="caret"></span>
 		</a>
 		<ul class="dropdown-menu pull-left sorting">
@@ -966,10 +1023,10 @@ $files = $sorted;
                     <?php } ?>
                     <div class='file-extension'><?php echo fix_strtolower(trans('Type_dir'));?></div>
                     <figcaption>
-                        <a href="javascript:void('')" class="tip-left edit-button rename-file-paths <?php if($config['rename_folders'] && !$file_prevent_rename) echo "rename-folder";?>" title="<?php echo trans('Rename')?>" data-folder="1" data-permissions="<?php echo $file_array['permissions']; ?>">
-                        <i class="icon-pencil <?php if(!$config['rename_folders'] || $file_prevent_rename) echo 'icon-white';?>"></i></a>
-                        <a href="javascript:void('')" class="tip-left erase-button <?php if($config['delete_folders'] && !$file_prevent_delete) echo "delete-folder";?>" title="<?php echo trans('Erase')?>" data-confirm="<?php echo trans('Confirm_Folder_del');?>" >
-                        <i class="icon-trash <?php if(!$config['delete_folders'] || $file_prevent_delete) echo 'icon-white';?>"></i>
+                        <a href="javascript:void('')" class="tip-left edit-button rename-file-paths <?php if($config['rename_folders'] && !$file_prevent_rename) echo "rename-folder"; else echo "disabled";?>" title="<?php echo trans('Rename')?>" data-folder="1" data-permissions="<?php echo $file_array['permissions']; ?>">
+                        <img src="svg/icon-pencil.svg" alt="Rename" class="svg-icon"></a>
+                        <a href="javascript:void('')" class="tip-left erase-button <?php if($config['delete_folders'] && !$file_prevent_delete) echo "delete-folder"; else echo "disabled";?>" title="<?php echo trans('Erase')?>" data-confirm="<?php echo trans('Confirm_Folder_del');?>" >
+                        <img src="svg/icon-trash.svg" alt="Delete" class="svg-icon">
                         </a>
                     </figcaption>
             <?php } ?>
@@ -1150,31 +1207,34 @@ $files = $sorted;
                     <input type="hidden" name="path" value="<?php echo $rfm_subfolder.$subdir?>"/>
                     <input type="hidden" class="name_download" name="name" value="<?php echo $file?>"/>
 
-                    <a title="<?php echo trans('Download')?>" class="tip-right" href="javascript:void('')" <?php if($config['download_files']) echo "onclick=\"$('#form".$nu."').submit();\"" ?>><i class="icon-download <?php if(!$config['download_files']) echo 'icon-white'; ?>"></i></a>
+                    <a title="<?php echo trans('Download')?>" class="tip-right <?php if(!$config['download_files']) echo 'disabled'; ?>" href="javascript:void('')" <?php if($config['download_files']) echo "onclick=\"$('#form".$nu."').submit();\"" ?>><img src="svg/icon-download.svg" alt="Download" class="svg-icon"></a>
 
-                    <?php if($is_img && $src_thumb!=""){ ?>
-                    <a class="tip-right preview" title="<?php echo trans('Preview')?>" data-featherlight="<?php echo $src;?>"  href="#"><i class=" icon-eye-open"></i></a>
+                    <?php if($is_img){ ?>
+                    <a class="tip-right preview" title="<?php echo trans('Preview')?>" data-featherlight="<?php echo $src;?>" href="#"><img src="svg/icon-eye.svg" alt="Preview" class="svg-icon"></a>
+                    <?php if(!empty($config['tui_active']) && in_array($file_array['extension'], array('jpg','jpeg','png','webp'))){ ?>
+                    <a class="tip-right launch-tui-editor" title="<?php echo trans('Edit_image')?>" href="javascript:void('')" data-path="<?php echo $src;?>" data-name="<?php echo $file;?>"><img src="svg/icon-edit.svg" alt="Edit" class="svg-icon"></a>
+                    <?php } ?>
                     <?php }elseif(($is_video || $is_audio) && in_array($file_array['extension'],$config['jplayer_exts'])){ ?>
                     <a class="tip-right modalAV <?php if($is_audio){ echo "audio"; }else{ echo "video"; } ?>"
                     title="<?php echo trans('Preview')?>" data-url="ajax_calls.php?action=media_preview&title=<?php echo $filename;?>&file=<?php echo $rfm_subfolder.$subdir.$file;?>"
-                    href="javascript:void('');" ><i class=" icon-eye-open"></i></a>
+                    href="javascript:void('');" ><img src="svg/icon-eye.svg" alt="Preview" class="svg-icon"></a>
                     <?php }elseif(in_array($file_array['extension'],$config['cad_exts'])){ ?>
                     <a class="tip-right file-preview-btn" title="<?php echo trans('Preview')?>" data-url="ajax_calls.php?action=cad_preview&title=<?php echo $filename;?>&file=<?php echo $rfm_subfolder.$subdir.$file;?>"
-                    href="javascript:void('');" ><i class=" icon-eye-open"></i></a>
+                    href="javascript:void('');" ><img src="svg/icon-eye.svg" alt="Preview" class="svg-icon"></a>
                     <?php }elseif($config['preview_text_files'] && in_array($file_array['extension'],$config['previewable_text_file_exts'])){ ?>
                     <a class="tip-right file-preview-btn" title="<?php echo trans('Preview')?>" data-url="ajax_calls.php?action=get_file&sub_action=preview&preview_mode=text&title=<?php echo $filename;?>&file=<?php echo $rfm_subfolder.$subdir.$file;?>"
-                    href="javascript:void('');" ><i class=" icon-eye-open"></i></a>
+                    href="javascript:void('');" ><img src="svg/icon-eye.svg" alt="Preview" class="svg-icon"></a>
                     <?php }elseif($config['googledoc_enabled'] && in_array($file_array['extension'],$config['googledoc_file_exts'])){ ?>
                     <a class="tip-right file-preview-btn" title="<?php echo trans('Preview')?>" data-url="ajax_calls.php?action=get_file&sub_action=preview&preview_mode=google&title=<?php echo $filename;?>&file=<?php echo $rfm_subfolder.$subdir.$file;?>"
-                    href="docs.google.com;" ><i class=" icon-eye-open"></i></a>
+                    href="docs.google.com;" ><img src="svg/icon-eye.svg" alt="Preview" class="svg-icon"></a>
                     <?php }else{ ?>
-                    <a class="preview disabled"><i class="icon-eye-open icon-white"></i></a>
+                    <a class="preview disabled"><img src="svg/icon-eye.svg" alt="Preview" class="svg-icon"></a>
                     <?php } ?>
-                    <a href="javascript:void('')" class="tip-left edit-button rename-file-paths <?php if($config['rename_files'] && !$file_prevent_rename) echo "rename-file";?>" title="<?php echo trans('Rename')?>" data-folder="0" data-permissions="<?php echo $file_array['permissions']; ?>">
-                    <i class="icon-pencil <?php if(!$config['rename_files'] || $file_prevent_rename) echo 'icon-white';?>"></i></a>
+                    <a href="javascript:void('')" class="tip-left edit-button rename-file-paths <?php if($config['rename_files'] && !$file_prevent_rename) echo "rename-file"; else echo "disabled";?>" title="<?php echo trans('Rename')?>" data-folder="0" data-permissions="<?php echo $file_array['permissions']; ?>">
+                    <img src="svg/icon-pencil.svg" alt="Rename" class="svg-icon"></a>
 
-                    <a href="javascript:void('')" class="tip-left erase-button <?php if($config['delete_files'] && !$file_prevent_delete) echo "delete-file";?>" title="<?php echo trans('Erase')?>" data-confirm="<?php echo trans('Confirm_del');?>">
-                    <i class="icon-trash <?php if(!$config['delete_files'] || $file_prevent_delete) echo 'icon-white';?>"></i>
+                    <a href="javascript:void('')" class="tip-left erase-button <?php if($config['delete_files'] && !$file_prevent_delete) echo "delete-file"; else echo "disabled";?>" title="<?php echo trans('Erase')?>" data-confirm="<?php echo trans('Confirm_del');?>">
+                    <img src="svg/icon-trash.svg" alt="Delete" class="svg-icon">
                     </a>
                     </form>
                 </figcaption>
@@ -1296,5 +1356,84 @@ $files = $sorted;
             };
         })();
     </script>
+
+    <?php if (!empty($config['tui_active'])): ?>
+    <!-- TUI Image Editor Container -->
+    <div id="tui-image-editor-wrapper" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:#1e1e1e;flex-direction:column;">
+        <div id="tui-editor-toolbar" style="height:50px;background:#2d2d2d;display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:0 15px;border-bottom:1px solid #444;flex-shrink:0;">
+            <button type="button" id="tui-save-btn" title="Save" style="width:40px;height:40px;border:none;border-radius:4px;background:#28a745;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+            </button>
+            <button type="button" id="tui-close-btn" title="Close" style="width:40px;height:40px;border:none;border-radius:4px;background:#6c757d;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <div id="tui-image-editor" style="flex:1;width:100%;overflow:hidden;"></div>
+    </div>
+
+    <script>
+    (function() {
+        // Save edited image
+        document.getElementById('tui-save-btn').addEventListener('click', function() {
+            if (!image_editor) return;
+
+            var wrapper = document.getElementById('tui-image-editor-wrapper');
+            var filename = wrapper.getAttribute('data-name');
+            var fldr = jQuery('#fldr_value').val();
+
+            // Determine format based on file extension
+            var ext = filename.split('.').pop().toLowerCase();
+            var mimeType = 'image/jpeg';
+            var quality = 0.92;
+            if (ext === 'png') {
+                mimeType = 'image/png';
+                quality = 1;
+            } else if (ext === 'webp') {
+                mimeType = 'image/webp';
+                quality = 0.92;
+            }
+
+            // Get canvas from TUI editor and use native toBlob for better WebP support
+            var canvas = document.querySelector('#tui-image-editor .lower-canvas');
+            if (!canvas) {
+                canvas = document.querySelector('#tui-image-editor canvas');
+            }
+
+            if (canvas) {
+                canvas.toBlob(function(blob) {
+                    var formData = new FormData();
+                    formData.append('files[]', blob, filename);
+                    formData.append('fldr', fldr);
+
+                    show_animation();
+
+                    fetch('upload.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        hide_animation();
+                        wrapper.style.display = 'none';
+                        // Refresh file list
+                        window.location.href = jQuery('#refresh').attr('href') + '&' + new Date().getTime();
+                    })
+                    .catch(err => {
+                        hide_animation();
+                        bootbox.alert('Error saving image: ' + err);
+                    });
+                }, mimeType, quality);
+            } else {
+                bootbox.alert('Cannot find editor canvas');
+            }
+        });
+
+        // Close editor
+        document.getElementById('tui-close-btn').addEventListener('click', function() {
+            document.getElementById('tui-image-editor-wrapper').style.display = 'none';
+        });
+    })();
+    </script>
+    <?php endif; ?>
 </body>
 </html>

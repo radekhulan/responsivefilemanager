@@ -96,12 +96,12 @@ var encodeURL,show_animation,hide_animation,apply,apply_none,apply_img,apply_any
 					var full_path = jQuery('#base_url').val() + jQuery('#upload_dir').val() + filepath;
 				}
 
-				var tuiElement = jQuery('#tui-image-editor');
-				tuiElement.attr('data-name', filename);
-				tuiElement.attr('data-path', full_path);
+				var wrapper = jQuery('#tui-image-editor-wrapper');
+				wrapper.attr('data-name', filename);
+				wrapper.attr('data-path', full_path);
 				show_animation();
-				launchEditor(tuiElement.attr('id'), full_path);
-				tuiElement.removeClass('hide');
+				launchEditor('tui-image-editor', full_path);
+				wrapper.css('display', 'flex');
 			},
 
 			duplicate: function($trigger)
@@ -218,7 +218,8 @@ var encodeURL,show_animation,hide_animation,apply,apply_none,apply_img,apply_any
 							$trigger.find('.img-precontainer-mini .filetype').hasClass('png')
 							|| $trigger.find('.img-precontainer-mini .filetype').hasClass('jpg')
 							|| $trigger.find('.img-precontainer-mini .filetype').hasClass('jpeg')
-						) && image_editor)
+							|| $trigger.find('.img-precontainer-mini .filetype').hasClass('webp')
+						) && window.image_editor)
 					{
 						options.items.edit_img = {
 							name: jQuery('#lang_edit_image').val(),
@@ -244,7 +245,7 @@ var encodeURL,show_animation,hide_animation,apply,apply_none,apply_img,apply_any
 					// extract
 					if (($trigger.find('.img-precontainer-mini .filetype').hasClass('zip') ||
 						$trigger.find('.img-precontainer-mini .filetype').hasClass('tar') ||
-						$trigger.find('.img-precontainer-mini .filetype').hasClass('gz')) && 
+						$trigger.find('.img-precontainer-mini .filetype').hasClass('gz')) &&
 						jQuery('#extract_files').val() == 1)
 					{
 						options.items.unzip = {
@@ -460,6 +461,27 @@ var encodeURL,show_animation,hide_animation,apply,apply_none,apply_img,apply_any
 				return true;
 			});
 
+			grid.on('click', '.launch-tui-editor', function (e)
+			{
+				e.preventDefault();
+				var _this = jQuery(this);
+				var full_path = _this.attr('data-path');
+				var filename = _this.attr('data-name');
+
+				if (!window.image_editor) {
+					bootbox.alert("Image editor not available");
+					return false;
+				}
+
+				var wrapper = jQuery('#tui-image-editor-wrapper');
+				wrapper.attr('data-name', filename);
+				wrapper.attr('data-path', full_path);
+				show_animation();
+				launchEditor('tui-image-editor', full_path);
+				wrapper.css('display', 'flex');
+				return false;
+			});
+
 			grid.on('click', '.rename-file', function ()
 			{
 				var _this = jQuery(this);
@@ -541,7 +563,7 @@ var encodeURL,show_animation,hide_animation,apply,apply_none,apply_img,apply_any
 					$el.find('.selection:visible').trigger('click');
 					$el.find('.selector:visible').trigger('click');
 				}else{
-					window[fun]($el.attr('data-file'), jQuery('#field_id').val(),$el);	
+					window[fun]($el.attr('data-file'), jQuery('#field_id').val(),$el);
 				}
 			}
 
@@ -648,11 +670,12 @@ var encodeURL,show_animation,hide_animation,apply,apply_none,apply_img,apply_any
 				// Uncomment the following to send cross-domain cookies:
 				//xhrFields: {withCredentials: true},
 				url: 'upload.php',
-				maxChunkSize: 2 * 1024 * 1024, // 2 MB
 				autoUpload: true,
 				sequentialUploads: true,
 				singleFileUploads: true,
-				fileInput: jQuery('.fileinput-button input[type=file]')
+				fileInput: jQuery('.fileinput-button input[type=file]'),
+				disableImageResize: true,
+				disableImagePreview: true
 			});
 			jQuery('#fileupload').bind('fileuploaddrop', function (e, data) {
 				jQuery('.uploader').show(200);
@@ -660,17 +683,6 @@ var encodeURL,show_animation,hide_animation,apply,apply_none,apply_img,apply_any
 			jQuery('#fileupload').bind('fileuploadsubmit', function (e, data) {
 				// The example input, doesn't have to be part of the upload form:
 				data.formData = {fldr: jQuery('#sub_folder').val() + jQuery('#fldr_value').val()+(data.files[0].relativePath || data.files[0].webkitRelativePath || '')};
-			});
-			// Load existing files:
-			jQuery('#fileupload').addClass('fileupload-processing');
-			$.ajax({
-				// Uncomment the following to send cross-domain cookies:
-				//xhrFields: {withCredentials: true},
-				url: jQuery('#fileupload').fileupload('option', 'url'),
-				dataType: 'json',
-				context: jQuery('#fileupload')[0]
-			}).always(function () {
-				jQuery(this).removeClass('fileupload-processing');
 			});
 			// upload btn
 			jQuery('.upload-btn').on('click', function ()
@@ -705,6 +717,7 @@ var encodeURL,show_animation,hide_animation,apply,apply_none,apply_img,apply_any
 				{
 					hide_animation();
 					jQuery('#url').val('');
+					jQuery('.close-uploader').trigger('click');
 				}).fail(function(msg){
 					bootbox.alert(jQuery('#lang_error_upload').val());
 					hide_animation();
@@ -822,9 +835,9 @@ var encodeURL,show_animation,hide_animation,apply,apply_none,apply_img,apply_any
 			}
 		}
 		jQuery('.ff-container').on('click','.checkmark',function(e){
-			
+
 			e.stopPropagation();
-			
+
 			if(!jQuery(this).parent().find('input').is(':checked')){
 				checked++;
 			}else{
@@ -839,8 +852,8 @@ var encodeURL,show_animation,hide_animation,apply,apply_none,apply_img,apply_any
 			jQuery('#previewLightbox').lightbox('hide');
 		});
 
-		jQuery('body').on('click', function (){ 
-			jQuery('.tip-right').tooltip('hide'); 
+		jQuery('body').on('click', function (){
+			jQuery('.tip-right').tooltip('hide');
 		});
 
 		FileManager.bindGridEvents();
@@ -857,12 +870,6 @@ var encodeURL,show_animation,hide_animation,apply,apply_none,apply_img,apply_any
 		FileManager.makeSort(js_script);
 		FileManager.makeFilters(js_script);
 		FileManager.uploadURL();
-
-		// info btn
-		jQuery('#info').on('click', function ()
-		{
-			bootbox.alert('<div class="text-center"><br/><img src="img/logo.png" alt="responsive filemanager"/><br/><br/><p><strong>RESPONSIVE filemanager v.' + version + '</strong><br/><a href="http://www.responsivefilemanager.com">responsivefilemanager.com</a></p><br/><p>Copyright © <a href="http://www.tecrail.com" alt="tecrail">Tecrail</a> - Alberto Peripolli. All rights reserved.</p><br/><p>License<br/><small><img alt="Creative Commons License" style="border-width:0" src="https://www.responsivefilemanager.com/license.php" /><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc/3.0/">Creative Commons Attribution-NonCommercial 3.0 Unported License</a>.</small></p></div>');
-		});
 
 		jQuery('#change_lang_btn').on('click', function ()
 		{
@@ -925,9 +932,9 @@ var encodeURL,show_animation,hide_animation,apply,apply_none,apply_img,apply_any
 			var _this = jQuery(this);
 
 			jQuery('.view-controller button').removeClass('btn-inverse');
-			jQuery('.view-controller i').removeClass('icon-white');
+			jQuery('.view-controller .svg-icon').removeClass('svg-icon-white');
 			_this.addClass('btn-inverse');
-			_this.find('i').addClass('icon-white');
+			_this.find('.svg-icon').addClass('svg-icon-white');
 
 			$.ajax({
 				url: "ajax_calls.php?action=view&type=" + _this.attr('data-value')
@@ -1001,6 +1008,22 @@ var encodeURL,show_animation,hide_animation,apply,apply_none,apply_img,apply_any
 				clear_clipboard();
 			}
 		});
+
+		// Close dialog button
+		jQuery('.close-dialog-btn').on('click', function () {
+			if (typeof parent.tinymce !== 'undefined') {
+				parent.tinymce.activeEditor.windowManager.close();
+			} else if (typeof parent.jQuery !== 'undefined' && parent.jQuery) {
+				if (typeof parent.jQuery.fancybox == 'function') {
+					parent.jQuery.fancybox.close();
+				} else if (typeof parent.jQuery(".modal:has(iframe)").modal == 'function') {
+					parent.jQuery(".modal:has(iframe)").modal("hide");
+				}
+			} else {
+				window.close();
+			}
+		});
+
 		var getFiles = function(path){
 			var files = [];
 			jQuery('.selection:checkbox:checked:visible').each(function () {
@@ -2095,7 +2118,6 @@ var encodeURL,show_animation,hide_animation,apply,apply_none,apply_img,apply_any
 
 	apply_none = function(file, external,el)
 	{
-		console.log(el);
 		var _this = el.parent().find('form a');
 		_this[1].click();
 		jQuery('.tip-right').tooltip('hide');
@@ -2500,15 +2522,35 @@ var encodeURL,show_animation,hide_animation,apply,apply_none,apply_img,apply_any
 
 	function launchEditor(id, src)
 	{
-		//load image into cropper. Set heights and refresh cropper.
-        imageEditor.loadImageFromURL(src, "SampleImage").then(result=>{
-		    imageEditor.ui.resizeEditor({
-		        imageSize: {oldWidth: result.oldWidth, oldHeight: result.oldHeight, newWidth: result.newWidth, newHeight: result.newHeight}
-		    });
-		}).catch(err=>{
-			bootbox.alert("Something went wrong: "+err);
-		})
-        hide_animation();
+		//load image into editor
+		if (!window.image_editor) {
+			bootbox.alert("Image editor not available");
+			hide_animation();
+			return false;
+		}
+		// Fetch image as blob and trigger via TUI's file input
+		fetch(src)
+			.then(function(response) { return response.blob(); })
+			.then(function(blob) {
+				var filename = src.split('/').pop().split('?')[0];
+				var file = new File([blob], filename, { type: blob.type });
+
+				// Find TUI editor's file input and trigger change
+				var inputs = document.querySelectorAll('#tui-image-editor input[type="file"]');
+				if (inputs.length > 0) {
+					var loadInput = inputs[0];
+					var dataTransfer = new DataTransfer();
+					dataTransfer.items.add(file);
+					loadInput.files = dataTransfer.files;
+					loadInput.dispatchEvent(new Event('change', { bubbles: true }));
+				}
+				hide_animation();
+			})
+			.catch(function(err) {
+				console.error('Error loading image:', err);
+				bootbox.alert("Error loading image: " + err);
+				hide_animation();
+			});
 		return false;
 	}
 

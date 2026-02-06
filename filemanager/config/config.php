@@ -1,5 +1,5 @@
 <?php
-$version = "9.15.0";
+$version = "9.16.0";
 if (session_id() == '') session_start();
 
 error_reporting(E_ERROR | E_PARSE);
@@ -336,7 +336,7 @@ $config = array(
 	//**********************
 	//Allowed extensions (lowercase insert)
 	//**********************
-	'ext_img'                                 => array( 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'ico' ), //Images
+	'ext_img'                                 => array( 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'ico', 'webp' ), //Images
 	'ext_file'                                => array( 'doc', 'docx', 'rtf', 'pdf', 'xls', 'xlsx', 'txt', 'csv', 'html', 'xhtml', 'psd', 'sql', 'log', 'fla', 'xml', 'ade', 'adp', 'mdb', 'accdb', 'ppt', 'pptx', 'odt', 'ots', 'ott', 'odb', 'odg', 'otp', 'otg', 'odf', 'ods', 'odp', 'css', 'ai', 'kmz','dwg', 'dxf', 'hpgl', 'plt', 'spl', 'step', 'stp', 'iges', 'igs', 'sat', 'cgm', 'tiff',''), //Files
 	'ext_video'                               => array( 'mov', 'mpeg', 'm4v', 'mp4', 'avi', 'mpg', 'wma', "flv", "webm" ), //Video
 	'ext_music'                               => array( 'mp3', 'mpga', 'm4a', 'ac3', 'aiff', 'mid', 'ogg', 'wav' ), //Audio
@@ -433,6 +433,26 @@ $config = array(
 
 	// Remember text filter after close filemanager for future session
 	'remember_text_filter'                    => false,
+
+	/******************
+	* TUI Image Editor config
+	*******************/
+	'tui_active'                           => true,
+	'tui_position'                         => 'left',
+
+	/******************
+	* Dark mode
+	*******************/
+	'dark_mode'                            => true,
+
+	/******************
+	* Remove TinyMCE dialog header
+	* When enabled, shows a close button in the file manager.
+	* Add this CSS to your page to hide the TinyMCE dialog header:
+	* .tox-dialog__header { display: none !important; }
+	* .tox-dialog__body { padding-top: 5px !important; }
+	*******************/
+	'remove_header'                        => false,
 
 );
 

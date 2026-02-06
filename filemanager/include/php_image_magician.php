@@ -2738,6 +2738,9 @@ class imageLib {
 			case 'bmp':
 				$img = @$this->imagecreatefrombmp($file);
 				break;
+			case 'webp':
+				$img = @imagecreatefromwebp($file);
+				break;
 			default:
 				$img = false;
 				break;
@@ -2860,8 +2863,17 @@ class imageLib {
 				file_put_contents($savePath, $this->GD2BMPstring($this->imageResized));
 				break;
 
-
-			// ... etc
+			case '.webp':
+				$this->checkInterlaceImage($this->isInterlace);
+				if (imagetypes() & IMG_WEBP)
+				{
+					imagewebp($this->imageResized, $savePath, $imageQuality);
+				}
+				else
+				{
+					$error = 'webp';
+				}
+				break;
 
 			default:
 				// *** No extension - No save.
