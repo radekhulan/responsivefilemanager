@@ -18,7 +18,11 @@ This is a modernized fork of [ResponsiveFilemanager](https://github.com/trippo/R
 
 ### Dark Mode Example
 
-![Dark Mode](source/example.jpg)
+![Dark Mode](source/DarkMode.jpg)
+
+### Light Mode Example
+
+![Light Mode](source/LightMode.jpg)
 
 ---
 
