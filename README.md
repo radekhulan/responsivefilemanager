@@ -8,12 +8,17 @@ This is a modernized fork of [ResponsiveFilemanager](https://github.com/trippo/R
 
 - **PHP 8.5 Support** - Updated codebase to be fully compatible with PHP 8.5
 - **TinyMCE 8 Integration** - Native support for TinyMCE version 8.x
+- **WebP Support** - Full support for WebP image format — upload, preview, thumbnails, and TUI editing all work with `.webp` files out of the box
 - **Updated JS Libraries** - All JavaScript dependencies updated to their latest versions
 - **Local JS Libraries** - Switched from CDN links to local copies (many CDNs no longer exist or are unreliable)
 - **Optional Dark Mode** - Added a dark mode theme that can be enabled via configuration
 - **SVG Icons** - Replaced legacy raster (PNG) icons with clean, scalable SVG icons
 - **Latest TUI Image Editor** - Bundled the newest version of TUI Image Editor for in-browser image editing
 - **Code Cleanup** - General code cleanup, removed deprecated functions and improved code quality
+
+### Dark Mode Example
+
+![Dark Mode](source/example.jpg)
 
 ---
 
@@ -85,6 +90,47 @@ Example structure:
 | `filemanager_title` | Title shown in the file manager dialog |
 | `file_picker_types` | Types to enable: `file`, `image`, `media` (space-separated) |
 
+
+## Configuration (`config.php`)
+
+The main configuration file is located at `filemanager/config/config.php`. Below are the most important settings you should review before deploying.
+
+### Authentication
+
+> [!CAUTION]
+> **The file manager does not include built-in user authentication.** By default, anyone who can access the `filemanager/` URL can browse, upload, and delete files. Before deploying to production, you **must** protect access yourself — for example by:
+>
+> - Adding a PHP session/login check at the top of `config.php` (or in a wrapper)
+> - Protecting the `filemanager/` directory with HTTP Basic Auth (`.htpasswd`)
+> - Restricting access at the web-server level (IP whitelist, VPN, etc.)
+>
+> The file manager offers an optional **access key** mechanism (`USE_ACCESS_KEYS`), but this is only a lightweight URL token — it is **not** a replacement for proper authentication.
+
+### Directory & URL Paths
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `upload_dir` | `'/source/'` | URL path (relative to domain root) to the upload folder. Must start and end with `/`. |
+| `thumbs_upload_dir` | `'/thumbs/'` | URL path to the thumbnails folder. Must start and end with `/`. |
+| `current_path` | `'../source/'` | Filesystem path from the `filemanager/` folder to the upload folder. |
+| `thumbs_base_path` | `'../thumbs/'` | Filesystem path from the `filemanager/` folder to the thumbnails folder. Do **not** place inside the upload folder. |
+
+### UI Options
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `tui_active` | `true` | Enable/disable the built-in TUI Image Editor (crop, rotate, filters, etc.). |
+| `dark_mode` | `true` | Enable/disable the dark mode theme for the file manager UI. |
+| `remove_header` | `false` | When `true`, the file manager renders its own close button so you can hide the TinyMCE dialog header. |
+
+When `remove_header` is enabled, add the following CSS to the page that opens TinyMCE to hide the redundant dialog title bar:
+
+```css
+.tox-dialog__header { display: none !important; }
+.tox-dialog__body { padding-top: 5px !important; }
+```
+
+---
 
 ## Original Project
 
