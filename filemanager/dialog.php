@@ -835,7 +835,7 @@ $files = $sorted;
 <?php if (!empty($config['remove_header'])): ?>
                 <button type="button" class="btn btn-danger pull-right close-dialog-btn" title="<?php echo trans('Close');?>"><img class="svg-icon svg-icon-white" src="svg/icon-close.svg" alt=""></button>
 <?php endif; ?>
-                <button type="button" id="dark-mode-toggle" class="btn pull-right tip" title="Dark / Light mode" style="margin-left:4px">
+                <button type="button" id="dark-mode-toggle" class="btn pull-right tip" title="Dark / Light mode" style="margin-left:4px; margin-right:4px">
                     <img id="dm-icon-moon" class="svg-icon" src="svg/icon-moon.svg" alt="" <?php if ($dark_mode_active): ?>style="display:none"<?php endif; ?>>
                     <img id="dm-icon-sun" class="svg-icon" src="svg/icon-sun.svg" alt="" <?php if (!$dark_mode_active): ?>style="display:none"<?php endif; ?>>
                 </button>
