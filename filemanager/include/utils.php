@@ -154,16 +154,31 @@ function isUploadDir($path, $config){
 */
 function deleteFile($path,$path_thumb,$config){
 	if ($config['delete_files']){
-		$ftp = ftp_con($config);
 		if (file_exists($path)){
 			unlink($path);
 		}
-		if (file_exists($path_thumb)){
+
+		// Delete thumbnail - try passed path first, then derive from file path as fallback
+		clearstatcache();
+		if ($path_thumb && file_exists($path_thumb)){
 			unlink($path_thumb);
 		}
 
+		// Fallback: derive thumb path from file path by replacing current_path with thumbs_base_path
+		if (!empty($config['current_path']) && !empty($config['thumbs_base_path'])) {
+			$relative_path = str_replace(
+				rtrim($config['current_path'], '/'),
+				rtrim($config['thumbs_base_path'], '/'),
+				$path
+			);
+			clearstatcache();
+			if ($relative_path !== $path_thumb && file_exists($relative_path)) {
+				unlink($relative_path);
+			}
+		}
+
 		$info=pathinfo($path);
-		if (!$ftp && $config['relative_image_creation']){
+		if ($config['relative_image_creation']){
 			foreach($config['relative_path_from_current_pos'] as $k=>$path)
 			{
 				if ($path!="" && $path[strlen($path)-1]!="/") $path.="/";
@@ -175,7 +190,7 @@ function deleteFile($path,$path_thumb,$config){
 			}
 		}
 
-		if (!$ftp && $config['fixed_image_creation'])
+		if ($config['fixed_image_creation'])
 		{
 			foreach($config['fixed_path_from_filemanager'] as $k=>$path)
 			{
@@ -198,7 +213,7 @@ function deleteFile($path,$path_thumb,$config){
 *
 * @return  bool
 */
-function deleteDir($dir,$ftp = null, $config = null)
+function deleteDir($dir, $config = null)
 {
 	if ( ! file_exists($dir) || isUploadDir($dir, $config))
 	{
@@ -214,7 +229,7 @@ function deleteDir($dir,$ftp = null, $config = null)
 		{
 			continue;
 		}
-		if ( ! deleteDir($dir . DIRECTORY_SEPARATOR . $item))
+		if ( ! deleteDir($dir . DIRECTORY_SEPARATOR . $item, $config))
 		{
 			return false;
 		}
@@ -231,7 +246,7 @@ function deleteDir($dir,$ftp = null, $config = null)
 *
 * @return  bool
 */
-function duplicate_file( $old_path, $name, $ftp = null, $config = null )
+function duplicate_file( $old_path, $name, $config = null )
 {
 	$info = pathinfo($old_path);
 	$new_path = $info['dirname'] . "/" . $name . "." . $info['extension'];
@@ -256,7 +271,7 @@ function duplicate_file( $old_path, $name, $ftp = null, $config = null )
 *
 * @return bool
 */
-function rename_file($old_path, $name, $ftp = null, $config = null)
+function rename_file($old_path, $name, $config = null)
 {
 	$name = fix_filename($name, $config);
 	$info = pathinfo($old_path);
@@ -297,31 +312,18 @@ function tempdir() {
 *
 * @return bool
 */
-function rename_folder($old_path, $name, $ftp = null, $config = null)
+function rename_folder($old_path, $name, $config = null)
 {
 	$name = fix_filename($name, $config, true);
 	$new_path = fix_dirname($old_path) . "/" . $name;
-	if($ftp){
-		if($ftp->chdir("/".$old_path)){
-			if(@$ftp->chdir($new_path)){
-				return false;
-			}
-			return $ftp->rename("/".$old_path, "/".$new_path);
-		}
-	}else{
-		if (file_exists($old_path) && is_dir($old_path) && !isUploadDir($old_path, $config))
+	if (file_exists($old_path) && is_dir($old_path) && !isUploadDir($old_path, $config))
+	{
+		if (file_exists($new_path) && $old_path == $new_path)
 		{
-			if (file_exists($new_path) && $old_path == $new_path)
-			{
-				return false;
-			}
-			return rename($old_path, $new_path);
+			return false;
 		}
+		return rename($old_path, $new_path);
 	}
-}
-
-function ftp_con($config){
-	return false;
 }
 
 /**
@@ -479,58 +481,28 @@ function checkresultingsize($sizeAdded)
 * @param  string  $path
 * @param  string  $path_thumbs
 */
-function create_folder($path = null, $path_thumbs = null,$ftp = null,$config = null)
+function create_folder($path = null, $path_thumbs = null, $config = null)
 {
-	if($ftp){
-		$ftp->mkdir($path);
-		$ftp->mkdir($path_thumbs);
-	}else{
-		if(file_exists($path) || file_exists($path_thumbs)){
-			return false;
-		}
-		$oldumask = umask(0);
-		$permission = 0755;
-		if(isset($config['folderPermission'])){
-			$permission = $config['folderPermission'];
-		}
-		if ($path && !file_exists($path))
-		{
-			mkdir($path, $permission, true);
-		} // or even 01777 so you get the sticky bit set
-		if ($path_thumbs)
-		{
-			mkdir($path_thumbs, $permission, true) or die("$path_thumbs cannot be found");
-		} // or even 01777 so you get the sticky bit set
-		umask($oldumask);
-		return true;
+	if(file_exists($path) || file_exists($path_thumbs)){
+		return false;
 	}
+	$oldumask = umask(0);
+	$permission = 0755;
+	if(isset($config['folderPermission'])){
+		$permission = $config['folderPermission'];
+	}
+	if ($path && !file_exists($path))
+	{
+		mkdir($path, $permission, true);
+	}
+	if ($path_thumbs)
+	{
+		mkdir($path_thumbs, $permission, true) or die("$path_thumbs cannot be found");
+	}
+	umask($oldumask);
+	return true;
 }
 
-/**
-* Get file extension present in directory
-*
-* @param  string  $path
-* @param  string  $ext
-*/
-function check_files_extensions_on_path($path, $ext)
-{
-	if ( ! is_dir($path))
-	{
-		$fileinfo = pathinfo($path);
-		if ( ! in_array(mb_strtolower($fileinfo['extension']), $ext))
-		{
-			unlink($path);
-		}
-	}
-	else
-	{
-		$files = scandir($path);
-		foreach ($files as $file)
-		{
-			check_files_extensions_on_path(trim($path, '/') . "/" . $file, $ext);
-		}
-	}
-}
 
 
 /**
@@ -570,11 +542,11 @@ function check_file_extension($extension,$config){
 */
 function check_files_extensions_on_phar($phar, &$files, $basepath, $config)
 {
-	foreach ($phar as $file)
+	if (is_array($phar)) foreach ($phar as $file)
 	{
 		if ($file->isFile())
 		{
-			if (check_file_extension($file->getExtension()))
+			if (check_file_extension($file->getExtension(), $config))
 			{
 				$files[] = $basepath . $file->getFileName();
 			}
@@ -941,7 +913,6 @@ function get_file_by_url($url)
 	curl_setopt($ch, CURLOPT_URL, $url);
 
 	$data = curl_exec($ch);
-	curl_close($ch);
 
 	return $data;
 }

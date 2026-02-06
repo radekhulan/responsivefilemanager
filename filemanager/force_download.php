@@ -20,13 +20,7 @@ if (strpos($_POST['name'], '/') !== false) {
     exit;
 }
 
-$ftp = ftp_con($config);
-
-if ($ftp) {
-    $path = $config['ftp_base_url'] . $config['upload_dir'] . $_POST['path'];
-} else {
-    $path = $config['current_path'] . $_POST['path'];
-}
+$path = $config['current_path'] . $_POST['path'];
 
 $name = $_POST['name'];
 $info = pathinfo($name);
@@ -42,12 +36,7 @@ $file_path = $path . $name;
 
 
 // make sure the file exists
-if ($ftp) {
-    header('Content-Type: application/octet-stream');
-    header("Content-Transfer-Encoding: Binary");
-    header("Content-disposition: attachment; filename=\"" . $file_name . "\"");
-    readfile($file_path);
-} elseif (is_file($file_path) && is_readable($file_path)) {
+if (is_file($file_path) && is_readable($file_path)) {
     if (!file_exists($path . $name)) {
         response(trans('File_Not_Found') . AddErrorLocation(), 404)->send();
         exit;

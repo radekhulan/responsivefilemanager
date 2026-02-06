@@ -99,9 +99,7 @@ if ($rfm_subfolder != "" && $rfm_subfolder[strlen($rfm_subfolder) - 1] != "/") {
     $rfm_subfolder .= "/";
 }
 
-$ftp = ftp_con($config);
-
-if (($ftp && !$ftp->isDir($config['ftp_base_folder'] . $config['upload_dir'] . $rfm_subfolder . $subdir)) || (!$ftp && !file_exists($config['current_path'] . $rfm_subfolder . $subdir))) {
+if (!file_exists($config['current_path'] . $rfm_subfolder . $subdir)) {
     $subdir = '';
     $rfm_subfolder = "";
 }
@@ -112,40 +110,31 @@ $cur_dir_thumb	= $config['thumbs_upload_dir'].$rfm_subfolder.$subdir;
 $thumbs_path	= $config['thumbs_base_path'].$rfm_subfolder.$subdir;
 $parent			= $rfm_subfolder.$subdir;
 
-if ($ftp) {
-    $cur_dir = $config['ftp_base_folder'] . $cur_dir;
-    $cur_dir_thumb = $config['ftp_base_folder'] . $cur_dir_thumb;
-    $thumbs_path = str_replace(array('/..', '..'), '', $cur_dir_thumb);
-    $parent = $config['ftp_base_folder'] . $parent;
+$cycle = TRUE;
+$max_cycles = 50;
+$i = 0;
+while ($cycle && $i < $max_cycles) {
+    $i++;
+
+    if ($parent == "./") {
+        $parent = "";
+    }
+
+    if (file_exists($config['current_path'] . $parent . "config.php")) {
+        $configTemp = include $config['current_path'] . $parent . 'config.php';
+        $config = array_merge($config, $configTemp);
+        $cycle = FALSE;
+    }
+
+    if ($parent == "") {
+        $cycle = FALSE;
+    } else {
+        $parent = fix_dirname($parent) . "/";
+    }
 }
 
-if (!$ftp) {
-    $cycle = TRUE;
-    $max_cycles = 50;
-    $i = 0;
-    while ($cycle && $i < $max_cycles) {
-        $i++;
-
-        if ($parent == "./") {
-            $parent = "";
-        }
-
-        if (file_exists($config['current_path'] . $parent . "config.php")) {
-            $configTemp = include $config['current_path'] . $parent . 'config.php';
-            $config = array_merge($config, $configTemp);
-            $cycle = FALSE;
-        }
-
-        if ($parent == "") {
-            $cycle = FALSE;
-        } else {
-            $parent = fix_dirname($parent) . "/";
-        }
-    }
-
-    if (!is_dir($thumbs_path)) {
-        create_folder(FALSE, $thumbs_path, $ftp, $config);
-    }
+if (!is_dir($thumbs_path)) {
+    create_folder(FALSE, $thumbs_path, $config);
 }
 
 $multiple = null;
@@ -315,37 +304,37 @@ $get_params = http_build_query($get_params);
         <title>Responsive FileManager</title>
         <link rel="shortcut icon" href="img/ico/favicon.ico">
         <!-- CSS to style the file input field as button and adjust the Bootstrap progress bars -->
-        <link rel="stylesheet" href="css/jquery.fileupload.css">
-        <link rel="stylesheet" href="css/jquery.fileupload-ui.css">
+        <link rel="stylesheet" href="style/jquery.fileupload.css">
+        <link rel="stylesheet" href="style/jquery.fileupload-ui.css">
         <!-- CSS adjustments for browsers with JavaScript disabled -->
-        <noscript><link rel="stylesheet" href="css/jquery.fileupload-noscript.css"></noscript>
-        <noscript><link rel="stylesheet" href="css/jquery.fileupload-ui-noscript.css"></noscript>
-        <link rel="stylesheet" href="css/vendor/jplayer.blue.monday.min.css" />
-        <link href="css/style.css?v=<?php echo $version; ?>" rel="stylesheet" type="text/css" />
+        <noscript><link rel="stylesheet" href="style/jquery.fileupload-noscript.css"></noscript>
+        <noscript><link rel="stylesheet" href="style/jquery.fileupload-ui-noscript.css"></noscript>
+        <link rel="stylesheet" href="style/vendor/jplayer.blue.monday.min.css" />
+        <link href="style/style.css?v=<?php echo $version; ?>" rel="stylesheet" type="text/css" />
         <?php if (!empty($config['dark_mode'])): ?>
-        <link rel="stylesheet" href="css/style.dark.css">
+        <link rel="stylesheet" href="style/style.dark.css">
         <?php endif; ?>
         <?php if (!empty($config['tui_active'])): ?>
         <!-- TUI Image Editor -->
-        <link rel="stylesheet" href="css/tui-image-editor.min.css">
-        <link rel="stylesheet" href="css/tui-color-picker.min.css">
+        <link rel="stylesheet" href="style/tui-image-editor.min.css">
+        <link rel="stylesheet" href="style/tui-color-picker.min.css">
         <style>
             .tui-image-editor-header-buttons,
             .tui-image-editor-header-logo { display: none !important; }
         </style>
         <?php endif; ?>
 
-        <script src="javascript/vendor/jquery-3.7.1.min.js"></script>
-        <script src="javascript/vendor/jquery-migrate-3.5.2.min.js"></script>
-        <script src="javascript/vendor/jquery-ui-1.14.1.min.js"></script>
-        <script src="javascript/plugins.js?v=<?php echo $version; ?>"></script>
-        <script src="javascript/vendor/jquery.jplayer.min.js"></script>
+        <script src="script/vendor/jquery-3.7.1.min.js"></script>
+        <script src="script/vendor/jquery-migrate-3.5.2.min.js"></script>
+        <script src="script/vendor/jquery-ui-1.14.1.min.js"></script>
+        <script src="script/plugins.js?v=<?php echo $version; ?>"></script>
+        <script src="script/vendor/jquery.jplayer.min.js"></script>
 
         <?php if (!empty($config['tui_active'])): ?>
         <!-- TUI Image Editor JS (defer keeps order but loads in parallel) -->
-        <script defer src="javascript/vendor/fabric.min.js"></script>
-        <script defer src="javascript/vendor/tui-color-picker.min.js"></script>
-        <script defer src="javascript/vendor/tui-image-editor.min.js"></script>
+        <script defer src="script/vendor/fabric.min.js"></script>
+        <script defer src="script/vendor/tui-color-picker.min.js"></script>
+        <script defer src="script/vendor/tui-image-editor.min.js"></script>
         <?php endif; ?>
 
         <script type="text/javascript">
@@ -397,33 +386,33 @@ $get_params = http_build_query($get_params);
             <?php endif; ?>
         </script>
 
-        <script src="javascript/include.js?v=<?php echo $version; ?>"></script>
+        <script src="script/include.js?v=<?php echo $version; ?>"></script>
 </head>
 <body>
     <!-- The Templates plugin is included to render the upload/download listings -->
-    <script src="javascript/vendor/tmpl.min.js"></script>
+    <script src="script/vendor/tmpl.min.js"></script>
     <!-- The Load Image plugin is included for the preview images and image resizing functionality -->
-    <script src="javascript/vendor/load-image.all.min.js"></script>
+    <script src="script/vendor/load-image.all.min.js"></script>
     <!-- The Canvas to Blob plugin is included for image resizing functionality -->
-    <script src="javascript/vendor/canvas-to-blob.min.js"></script>
+    <script src="script/vendor/canvas-to-blob.min.js"></script>
     <!-- The Iframe Transport is required for browsers without support for XHR file uploads -->
-    <script src="javascript/jquery.iframe-transport.js"></script>
+    <script src="script/jquery.iframe-transport.js"></script>
     <!-- The basic File Upload plugin -->
-    <script src="javascript/jquery.fileupload.js"></script>
+    <script src="script/jquery.fileupload.js"></script>
     <!-- The File Upload processing plugin -->
-    <script src="javascript/jquery.fileupload-process.js"></script>
+    <script src="script/jquery.fileupload-process.js"></script>
     <!-- The File Upload image preview & resize plugin -->
-    <script src="javascript/jquery.fileupload-image.js"></script>
+    <script src="script/jquery.fileupload-image.js"></script>
     <!-- The File Upload audio preview plugin -->
-    <script src="javascript/jquery.fileupload-audio.js"></script>
+    <script src="script/jquery.fileupload-audio.js"></script>
     <!-- The File Upload video preview plugin -->
-    <script src="javascript/jquery.fileupload-video.js"></script>
+    <script src="script/jquery.fileupload-video.js"></script>
     <!-- The File Upload validation plugin -->
-    <script src="javascript/jquery.fileupload-validate.js"></script>
+    <script src="script/jquery.fileupload-validate.js"></script>
     <!-- The File Upload user interface plugin -->
-    <script src="javascript/jquery.fileupload-ui.js"></script>
+    <script src="script/jquery.fileupload-ui.js"></script>
 
-    <input type="hidden" id="ftp" value="<?php echo !!$ftp; ?>" />
+    <input type="hidden" id="ftp" value="" />
     <input type="hidden" id="popup" value="<?php echo $popup;?>" />
     <input type="hidden" id="callback" value="<?php echo $callback; ?>" />
     <input type="hidden" id="crossdomain" value="<?php echo $crossdomain;?>" />
@@ -445,7 +434,7 @@ $get_params = http_build_query($get_params);
     <input type="hidden" id="lang_duplicate" value="<?php echo trans('Duplicate');?>" />
     <input type="hidden" id="duplicate" value="<?php if($config['duplicate_files']) echo 1; else echo 0;?>" />
     <input type="hidden" id="base_url" value="<?php echo $config['base_url']?>"/>
-    <input type="hidden" id="ftp_base_url" value="<?php echo $config['ftp_base_url']?>"/>
+    <input type="hidden" id="ftp_base_url" value=""/>
     <input type="hidden" id="fldr_value" value="<?php echo $subdir;?>"/>
     <input type="hidden" id="sub_folder" value="<?php echo $rfm_subfolder;?>"/>
     <input type="hidden" id="return_relative_url" value="<?php echo $return_relative_url == true ? 1 : 0;?>"/>
@@ -639,30 +628,6 @@ $current_files_number = 0;
 $current_folders_number = 0;
 
 foreach ($files as $k => $file) {
-    if ($ftp) {
-        $date = strtotime($file['day'] . " " . $file['month'] . " " . date('Y') . " " . $file['time']);
-        $size = $file['size'];
-        if ($file['type'] == 'file') {
-            $current_files_number++;
-            $file_ext = substr(strrchr($file['name'], '.'), 1);
-            $is_dir = false;
-        } else {
-            $current_folders_number++;
-            $file_ext = trans('Type_dir');
-            $is_dir = true;
-        }
-        $sorted[$k] = array(
-            'is_dir' => $is_dir,
-            'file' => $file['name'],
-            'file_lcase' => strtolower($file['name']),
-            'date' => $date,
-            'size' => $size,
-            'permissions' => $file['permissions'],
-            'extension' => fix_strtolower($file_ext)
-        );
-    } else {
-
-
         if ($file != "." && $file != "..") {
             if (is_dir($config['current_path'] . $rfm_subfolder . $subdir . $file)) {
                 $date = filemtime($config['current_path'] . $rfm_subfolder . $subdir . $file);
@@ -704,7 +669,6 @@ foreach ($files as $k => $file) {
                 );
             }
         }
-    }
 }
 
 function filenameSort($x, $y)
@@ -920,7 +884,7 @@ $files = $sorted;
 	<!-- breadcrumb div end -->
 	<div class="row-fluid ff-container">
 	<div class="span12">
-		<?php if( ($ftp && !$ftp->isDir($config['ftp_base_folder'].$config['upload_dir'].$rfm_subfolder.$subdir))  || (!$ftp && @opendir($config['current_path'].$rfm_subfolder.$subdir)===FALSE)){ ?>
+		<?php if( @opendir($config['current_path'].$rfm_subfolder.$subdir)===FALSE ){ ?>
 		<br/>
 		<div class="alert alert-error">There is an error! The upload folder there isn't. Check your config.php file. </div>
 		<?php }else{ ?>
@@ -952,15 +916,10 @@ $files = $sorted;
                 continue;
             }
             $new_name=fix_filename($file,$config);
-            if($ftp && $file!='..' && $file!=$new_name){
-                //rename
-                rename_folder($config['current_path'].$subdir.$file,$new_name,$ftp,$config);
-                $file=$new_name;
-            }
             //add in thumbs folder if not exist
             if($file!='..'){
-                if(!$ftp && !file_exists($thumbs_path.$file)){
-                    create_folder(false,$thumbs_path.$file,$ftp,$config);
+                if(!file_exists($thumbs_path.$file)){
+                    create_folder(false,$thumbs_path.$file,$config);
                 }
             }
 
@@ -1051,34 +1010,30 @@ $files = $sorted;
                 if(strlen($file_array['extension'])===0){
                     $filename = $file;
                 }
-                if(!$ftp){
-                    $file_path=$config['current_path'].$rfm_subfolder.$subdir.$file;
-                    //check if file have illegal caracter
+                $file_path=$config['current_path'].$rfm_subfolder.$subdir.$file;
+                //check if file have illegal caracter
 
-                    if($file!=fix_filename($file,$config)){
-                        $file1=fix_filename($file,$config);
+                if($file!=fix_filename($file,$config)){
+                    $file1=fix_filename($file,$config);
+                    $file_path1=($config['current_path'].$rfm_subfolder.$subdir.$file1);
+                    if(file_exists($file_path1)){
+                        $i = 1;
+                        $info=pathinfo($file1);
+                        while(file_exists($config['current_path'].$rfm_subfolder.$subdir.$info['filename'].".[".$i."].".$info['extension'])) {
+                            $i++;
+                        }
+                        $file1=$info['filename'].".[".$i."].".$info['extension'];
                         $file_path1=($config['current_path'].$rfm_subfolder.$subdir.$file1);
-                        if(file_exists($file_path1)){
-                            $i = 1;
-                            $info=pathinfo($file1);
-                            while(file_exists($config['current_path'].$rfm_subfolder.$subdir.$info['filename'].".[".$i."].".$info['extension'])) {
-                                $i++;
-                            }
-                            $file1=$info['filename'].".[".$i."].".$info['extension'];
-                            $file_path1=($config['current_path'].$rfm_subfolder.$subdir.$file1);
-                        }
-
-                        $filename=substr($file1, 0, '-' . (strlen($file_array['extension']) + 1));
-                        if(strlen($file_array['extension'])===0){
-                            $filename = $file1;
-                        }
-                        rename_file($file_path,fix_filename($filename,$config),$ftp,$config);
-                        $file=$file1;
-                        $file_array['extension']=fix_filename($file_array['extension'],$config);
-                        $file_path=$file_path1;
                     }
-                }else{
-                    $file_path = $config['ftp_base_url'].$config['upload_dir'].$rfm_subfolder.$subdir.$file;
+
+                    $filename=substr($file1, 0, '-' . (strlen($file_array['extension']) + 1));
+                    if(strlen($file_array['extension'])===0){
+                        $filename = $file1;
+                    }
+                    rename_file($file_path,fix_filename($filename,$config),$config);
+                    $file=$file1;
+                    $file_array['extension']=fix_filename($file_array['extension'],$config);
+                    $file_path=$file_path1;
                 }
 
                 $is_img=false;
@@ -1093,11 +1048,6 @@ $files = $sorted;
                     $is_img=true;
 
                     $img_width = $img_height = "";
-                    if($ftp){
-                        $mini_src = $src_thumb = $config['ftp_base_url'].$config['ftp_thumbs_dir'].$subdir. $file;
-                        $creation_thumb_path = "/".$config['ftp_base_folder'].$config['ftp_thumbs_dir'].$subdir. $file;
-                    }else{
-
                         $creation_thumb_path = $mini_src = $src_thumb = $thumbs_path. $file;
 
                         if (!file_exists($src_thumb)) {
@@ -1116,7 +1066,6 @@ $files = $sorted;
                             $mini_src=$config['current_path'].$rfm_subfolder.$subdir.$file;
                             $show_original_mini=true;
                         }
-                    }
                 }
                 $is_icon_thumb=false;
                 $is_icon_thumb_mini=false;
@@ -1393,36 +1342,34 @@ $files = $sorted;
                 quality = 0.92;
             }
 
-            // Get canvas from TUI editor and use native toBlob for better WebP support
+            // Get canvas from TUI editor
             var canvas = document.querySelector('#tui-image-editor .lower-canvas');
             if (!canvas) {
                 canvas = document.querySelector('#tui-image-editor canvas');
             }
 
             if (canvas) {
-                canvas.toBlob(function(blob) {
-                    var formData = new FormData();
-                    formData.append('files[]', blob, filename);
-                    formData.append('fldr', fldr);
+                var dataURL = canvas.toDataURL(mimeType, quality);
 
-                    show_animation();
+                show_animation();
 
-                    fetch('upload.php', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        hide_animation();
-                        wrapper.style.display = 'none';
-                        // Refresh file list
-                        window.location.href = jQuery('#refresh').attr('href') + '&' + new Date().getTime();
-                    })
-                    .catch(err => {
-                        hide_animation();
-                        bootbox.alert('Error saving image: ' + err);
-                    });
-                }, mimeType, quality);
+                jQuery.ajax({
+                    type: 'POST',
+                    url: 'ajax_calls.php?action=save_img',
+                    data: {
+                        url: dataURL,
+                        name: filename,
+                        path: fldr
+                    }
+                }).done(function() {
+                    hide_animation();
+                    wrapper.style.display = 'none';
+                    // Refresh file list
+                    window.location.href = jQuery('#refresh').attr('href') + '&' + new Date().getTime();
+                }).fail(function(xhr) {
+                    hide_animation();
+                    bootbox.alert('Error saving image: ' + xhr.responseText);
+                });
             } else {
                 bootbox.alert('Cannot find editor canvas');
             }

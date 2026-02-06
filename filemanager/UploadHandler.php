@@ -612,7 +612,7 @@ class UploadHandler
 
     protected function gd_destroy_image_object($file_path) {
         $image = (isset($this->image_objects[$file_path])) ? $this->image_objects[$file_path] : null ;
-        return $image && imagedestroy($image);
+        return $image;
     }
 
     protected function gd_imageflip($image, $mode) {
@@ -691,7 +691,6 @@ class UploadHandler
                     defined('IMG_FLIP_HORIZONTAL') ? IMG_FLIP_HORIZONTAL : 1
                 );
                 $new_img = imagerotate($tmp_img, 270, 0);
-                imagedestroy($tmp_img);
                 break;
             case 6:
                 $new_img = imagerotate($src_img, 270, 0);
@@ -702,7 +701,6 @@ class UploadHandler
                     defined('IMG_FLIP_VERTICAL') ? IMG_FLIP_VERTICAL : 2
                 );
                 $new_img = imagerotate($tmp_img, 270, 0);
-                imagedestroy($tmp_img);
                 break;
             case 8:
                 $new_img = imagerotate($src_img, 90, 0);
@@ -1038,7 +1036,6 @@ class UploadHandler
                 try {
                     if (@$image->pingImage($file_path)) {
                         $dimensions = array($image->getImageWidth(), $image->getImageHeight());
-                        $image->destroy();
                         return $dimensions;
                     }
                     return false;
@@ -1484,20 +1481,15 @@ class UploadHandler
         $targetPath = $this->options['storeFolder'];
         $targetPathThumb = $this->options['storeFolderThumb'];
 
-        if(!$this->options['ftp']){
-            $targetFile =  $targetPath. $res['files'][0]->name;
-            $targetFileThumb =  $targetPathThumb. $res['files'][0]->name;
-            if (!is_dir($targetPathThumb)) {
-                mkdir($targetPathThumb, $this->options['mkdir_mode'], true);
-            }
-            if(is_file($targetFile)) {
-                chmod($targetFile, $this->options['config']['filePermission']);
-            }elseif(is_dir($targetFile)){
-                chmod($targetFile, $this->options['config']['folderPermission']);
-            }
-        }else{
-            $targetFile = $this->options['config']['ftp_temp_folder'].$res['files'][0]->name;
-            $targetFileThumb =  $this->options['config']['ftp_temp_folder']."thumbs/". $res['files'][0]->name;
+        $targetFile =  $targetPath. $res['files'][0]->name;
+        $targetFileThumb =  $targetPathThumb. $res['files'][0]->name;
+        if (!is_dir($targetPathThumb)) {
+            mkdir($targetPathThumb, $this->options['mkdir_mode'], true);
+        }
+        if(is_file($targetFile)) {
+            chmod($targetFile, $this->options['config']['filePermission']);
+        }elseif(is_dir($targetFile)){
+            chmod($targetFile, $this->options['config']['folderPermission']);
         }
 
         //check if image (and supported)
@@ -1531,7 +1523,7 @@ class UploadHandler
             }
             else
             {
-                if( !$this->options['ftp'] && ! new_thumbnails_creation($targetPath,$targetFile,$_FILES['files']['name'][0],$this->options['config']['current_path'],$this->options['config']))
+                if( ! new_thumbnails_creation($targetPath,$targetFile,$_FILES['files']['name'][0],$this->options['config']['current_path'],$this->options['config']))
                 {
                     $res['files'][0]->error = trans("Not enough Memory");
                 }
@@ -1589,16 +1581,6 @@ class UploadHandler
             }
         }
 
-        if($this->options['ftp']){
-
-            $this->options['ftp']->put($targetPath. $res['files'][0]->name, $targetFile, FTP_BINARY);
-            unlink($targetFile);
-            if ($is_img)
-            {
-                $this->options['ftp']->put($targetPathThumb. $res['files'][0]->name, $targetFileThumb, FTP_BINARY);
-                unlink($targetFileThumb);
-            }
-        }
         $this->head();
         $this->body(json_encode($res));
     }

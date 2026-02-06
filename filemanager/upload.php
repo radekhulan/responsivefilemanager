@@ -21,15 +21,8 @@ try {
 
     include 'include/mime_type_lib.php';
 
-    $ftp = ftp_con($config);
-
-    if ($ftp) {
-        $source_base = $config['ftp_base_folder'] . $config['upload_dir'];
-        $thumb_base = $config['ftp_base_folder'] . $config['ftp_thumbs_dir'];
-    } else {
-        $source_base = $config['current_path'];
-        $thumb_base = $config['thumbs_base_path'];
-    }
+    $source_base = $config['current_path'];
+    $thumb_base = $config['thumbs_base_path'];
 
     if (isset($_POST["fldr"])) {
         $_POST['fldr'] = str_replace('undefined', '', $_POST['fldr']);
@@ -93,11 +86,9 @@ try {
             if (curl_errno($ch)) {
                 $error = curl_error($ch);
                 fclose($fp);
-                curl_close($ch);
                 throw new Exception('cURL error: ' . $error);
             }
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
             fclose($fp);
 
             $size = filesize($temp);
@@ -172,7 +163,6 @@ try {
         'config' => $config,
         'storeFolder' => $storeFolder,
         'storeFolderThumb' => $storeFolderThumb,
-        'ftp' => $ftp,
         'upload_dir' => dirname($_SERVER['SCRIPT_FILENAME']) . '/' . $storeFolder,
         'upload_url' => $config['base_url'] . $config['upload_dir'] . $_POST['fldr'],
         'mkdir_mode' => $config['folderPermission'],
@@ -193,18 +183,6 @@ try {
         if ($config['files_without_extension']) {
             $uploadConfig['accept_file_types'] = '/((\.(?!' . implode('|', $config['ext_blacklist']) . '$))|(^[^.]+$))/i';
         }
-    }
-
-    if ($ftp) {
-        if (!is_dir($config['ftp_temp_folder'])) {
-            mkdir($config['ftp_temp_folder'], $config['folderPermission'], true);
-        }
-
-        if (!is_dir($config['ftp_temp_folder'] . "thumbs")) {
-            mkdir($config['ftp_temp_folder'] . "thumbs", $config['folderPermission'], true);
-        }
-
-        $uploadConfig['upload_dir'] = $config['ftp_temp_folder'];
     }
 
     //print_r($_FILES);die();

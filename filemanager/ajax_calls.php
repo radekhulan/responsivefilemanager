@@ -36,8 +36,6 @@ if(isset($_POST['path']) && !checkRelativePath($_POST['path'])) {
 }
 
 
-$ftp = ftp_con($config);
-
 if (isset($_GET['action'])) {
     switch ($_GET['action']) {
         case 'new_file_form':
@@ -106,57 +104,26 @@ if (isset($_GET['action'])) {
                 response(sprintf(trans('max_size_reached'), $config['MaxSizeTotal']).AddErrorLocation())->send();
                 exit;
             }
-            if ($ftp) {
-                $temp = tempnam('/tmp', 'RF');
-                unlink($temp);
-                $temp .=".".substr(strrchr($_POST['url'], '.'), 1);
-                file_put_contents($temp, $image_data);
-
-                $ftp->put($config['ftp_base_folder'].$config['upload_dir'] . $_POST['path'] . $_POST['name'], $temp, FTP_BINARY);
-
-                create_img($temp, $temp, 122, 91);
-                $ftp->put($config['ftp_base_folder'].$config['ftp_thumbs_dir']. $_POST['path'] . $_POST['name'], $temp, FTP_BINARY);
-
-                unlink($temp);
-            } else {
-                file_put_contents($config['current_path'] . $_POST['path'] . $_POST['name'], $image_data);
-                create_img($config['current_path'] . $_POST['path'] . $_POST['name'], $config['thumbs_base_path'].$_POST['path'].$_POST['name'], 122, 91);
-                // TODO something with this function cause its blowing my mind
-                new_thumbnails_creation(
-                    $config['current_path'].$_POST['path'],
-                    $config['current_path'].$_POST['path'].$_POST['name'],
-                    $_POST['name'],
-                    $config['current_path'],
-                    $config
-                );
-            }
+            file_put_contents($config['current_path'] . $_POST['path'] . $_POST['name'], $image_data);
+            create_img($config['current_path'] . $_POST['path'] . $_POST['name'], $config['thumbs_base_path'].$_POST['path'].$_POST['name'], 122, 91);
+            // TODO something with this function cause its blowing my mind
+            new_thumbnails_creation(
+                $config['current_path'].$_POST['path'],
+                $config['current_path'].$_POST['path'].$_POST['name'],
+                $_POST['name'],
+                $config['current_path'],
+                $config
+            );
             break;
 
         case 'extract':
             if (!$config['extract_files']) {
                 response(trans('wrong action').AddErrorLocation())->send();
             }
-            if ($ftp) {
-                $path = $config['ftp_base_url'].$config['upload_dir'] . $_POST['path'];
-                $base_folder = $config['ftp_base_url'].$config['upload_dir'] . fix_dirname($_POST['path']) . "/";
-            } else {
-                $path = $config['current_path'] . $_POST['path'];
-                $base_folder = $config['current_path'] . fix_dirname($_POST['path']) . "/";
-            }
+            $path = $config['current_path'] . $_POST['path'];
+            $base_folder = $config['current_path'] . fix_dirname($_POST['path']) . "/";
 
             $info = pathinfo($path);
-
-            if ($ftp) {
-                $tempDir = tempdir();
-                $temp = tempnam($tempDir, 'RF');
-                unlink($temp);
-                $temp .= "." . $info['extension'];
-                $handle = fopen($temp, "w");
-                fwrite($handle, file_get_contents($path));
-                fclose($handle);
-                $path = $temp;
-                $base_folder = $tempDir . "/";
-            }
 
             $info = pathinfo($path);
 
@@ -221,13 +188,6 @@ if (isset($_GET['action'])) {
                     exit;
             }
 
-            if ($ftp) {
-                unlink($path);
-                $ftp->putAll($base_folder, "/".$config['ftp_base_folder'] . $config['upload_dir'] . fix_dirname($_POST['path']), FTP_BINARY);
-                deleteDir($base_folder);
-            }
-
-
 			break;
 		case 'media_preview':
 			if(isset($_GET['file'])){
@@ -236,11 +196,7 @@ if (isset($_GET['action'])) {
 			if(isset($_GET['title'])){
 				$_GET['title'] = sanitize($_GET['title']);
 			}
-			if($ftp){
-				$preview_file = $config['ftp_base_url'].$config['upload_dir'] . $_GET['file'];
-			}else{
-				$preview_file = $config['current_path'] . $_GET["file"];
-			}
+			$preview_file = $config['current_path'] . $_GET["file"];
 			$info = pathinfo($preview_file);
 			ob_start();
 			?>
@@ -405,51 +361,39 @@ if (isset($_GET['action'])) {
             $_SESSION['RF']['clipboard_action'] = null;
             break;
         case 'chmod':
-            if ($ftp) {
-                $path = $config['ftp_base_url'] . $config['upload_dir'] . $_POST['path'];
-                if (
-                    ($_POST['folder']==1 && $config['chmod_dirs'] === false)
-                    || ($_POST['folder']==0 && $config['chmod_files'] === false)
-                    || (is_function_callable("chmod") === false)) {
-                    response(sprintf(trans('File_Permission_Not_Allowed'), (is_dir($path) ? trans('Folders') : trans('Files')), 403).AddErrorLocation())->send();
-                    exit;
-                }
-                $info = $_POST['permissions'];
-            } else {
-                $path = $config['current_path'] . $_POST['path'];
-                if (
-                    (is_dir($path) && $config['chmod_dirs'] === false)
-                    || (is_file($path) && $config['chmod_files'] === false)
-                    || (is_function_callable("chmod") === false)) {
-                    response(sprintf(trans('File_Permission_Not_Allowed'), (is_dir($path) ? trans('Folders') : trans('Files')), 403).AddErrorLocation())->send();
-                    exit;
-                }
-
-                $perms = fileperms($path) & 0777;
-
-                $info = '-';
-
-                // Owner
-                $info .= (($perms & 0x0100) ? 'r' : '-');
-                $info .= (($perms & 0x0080) ? 'w' : '-');
-                $info .= (($perms & 0x0040) ?
-                            (($perms & 0x0800) ? 's' : 'x') :
-                            (($perms & 0x0800) ? 'S' : '-'));
-
-                // Group
-                $info .= (($perms & 0x0020) ? 'r' : '-');
-                $info .= (($perms & 0x0010) ? 'w' : '-');
-                $info .= (($perms & 0x0008) ?
-                            (($perms & 0x0400) ? 's' : 'x') :
-                            (($perms & 0x0400) ? 'S' : '-'));
-
-                // World
-                $info .= (($perms & 0x0004) ? 'r' : '-');
-                $info .= (($perms & 0x0002) ? 'w' : '-');
-                $info .= (($perms & 0x0001) ?
-                            (($perms & 0x0200) ? 't' : 'x') :
-                            (($perms & 0x0200) ? 'T' : '-'));
+            $path = $config['current_path'] . $_POST['path'];
+            if (
+                (is_dir($path) && $config['chmod_dirs'] === false)
+                || (is_file($path) && $config['chmod_files'] === false)
+                || (is_function_callable("chmod") === false)) {
+                response(sprintf(trans('File_Permission_Not_Allowed'), (is_dir($path) ? trans('Folders') : trans('Files')), 403).AddErrorLocation())->send();
+                exit;
             }
+
+            $perms = fileperms($path) & 0777;
+
+            $info = '-';
+
+            // Owner
+            $info .= (($perms & 0x0100) ? 'r' : '-');
+            $info .= (($perms & 0x0080) ? 'w' : '-');
+            $info .= (($perms & 0x0040) ?
+                        (($perms & 0x0800) ? 's' : 'x') :
+                        (($perms & 0x0800) ? 'S' : '-'));
+
+            // Group
+            $info .= (($perms & 0x0020) ? 'r' : '-');
+            $info .= (($perms & 0x0010) ? 'w' : '-');
+            $info .= (($perms & 0x0008) ?
+                        (($perms & 0x0400) ? 's' : 'x') :
+                        (($perms & 0x0400) ? 'S' : '-'));
+
+            // World
+            $info .= (($perms & 0x0004) ? 'r' : '-');
+            $info .= (($perms & 0x0002) ? 'w' : '-');
+            $info .= (($perms & 0x0001) ?
+                        (($perms & 0x0200) ? 't' : 'x') :
+                        (($perms & 0x0200) ? 'T' : '-'));
 
 
             $ret = '<div id="files_permission_start">
@@ -489,7 +433,7 @@ if (isset($_GET['action'])) {
                     </tbody>
                 </table>';
 
-            if ((!$ftp && is_dir($path))) {
+            if (is_dir($path)) {
                 $ret .= '<div class="hero-unit" style="padding:10px;">'.trans('File_Permission_Recursive').'<br/><br/>
                         <ul class="unstyled">
                             <li><label class="radio"><input value="none" name="apply_recursive" type="radio" checked> '.trans('No').'</label></li>
@@ -552,15 +496,11 @@ if (isset($_GET['action'])) {
                 exit;
             }
 
-            if ($ftp) {
-                $selected_file = ($sub_action == 'preview' ? $config['ftp_base_url'].$config['upload_dir'] . $_GET['file'] : $config['ftp_base_url'].$config['upload_dir'] . $_POST['path']);
-            } else {
-                $selected_file = ($sub_action == 'preview' ? $config['current_path'] . $_GET['file'] : $config['current_path'] . $_POST['path']);
+            $selected_file = ($sub_action == 'preview' ? $config['current_path'] . $_GET['file'] : $config['current_path'] . $_POST['path']);
 
-                if (! file_exists($selected_file)) {
-                    response(trans('File_Not_Found').AddErrorLocation())->send();
-                    exit;
-                }
+            if (! file_exists($selected_file)) {
+                response(trans('File_Not_Found').AddErrorLocation())->send();
+                exit;
             }
 
             $info = pathinfo($selected_file);
@@ -583,7 +523,7 @@ if (isset($_GET['action'])) {
             if (! in_array($info['extension'], $allowed_file_exts)
                 || ! isset($is_allowed)
                 || $is_allowed === false
-                || (!$ftp && ! is_readable($selected_file))
+                || (! is_readable($selected_file))
             ) {
                 response(sprintf(trans('File_Open_Edit_Not_Allowed'), ($sub_action == 'preview' ? strtolower(trans('Open')) : strtolower(trans('Edit')))).AddErrorLocation())->send();
                 exit;
@@ -598,11 +538,7 @@ if (isset($_GET['action'])) {
                     $ret .= '<script src="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/run_prettify.min.js?autoload=true&skin=sunburst"></script>';
                     $ret .= '<pre class="prettyprint linenums lang-'.$info['extension'].'">'.$data.'</pre>';
                 } elseif ($preview_mode == 'google') {
-                    if ($ftp) {
-                        $url_file = $selected_file;
-                    } else {
-                        $url_file = $config['base_url'] . $config['upload_dir'] . str_replace($config['current_path'], '', $_GET["file"]);
-                    }
+                    $url_file = $config['base_url'] . $config['upload_dir'] . str_replace($config['current_path'], '', $_GET["file"]);
 
 					$googledoc_url = urlencode($url_file);
 					$ret = "<iframe src=\"https://docs.google.com/viewer?url=" . $url_file . "&embedded=true\" class=\"google-iframe\"></iframe>";
