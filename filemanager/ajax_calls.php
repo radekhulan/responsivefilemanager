@@ -421,7 +421,7 @@ if (isset($_GET['action'])) {
                 exit;
             }
 
-            $curr = $_SESSION['RF']['language'] ?? '';
+            $curr = $_COOKIE['rfm_lang'] ?? $config['default_language'];
 
             $ret = '<select id="new_lang_select">';
             foreach ($languages as $code => $name) {
@@ -434,15 +434,14 @@ if (isset($_GET['action'])) {
 
             break;
         case 'change_lang':
-            $choosen_lang = $_POST['choosen_lang'] ?? 'en_EN';
+            $choosen_lang = basename($_POST['choosen_lang'] ?? '');
 
-            if (array_key_exists($choosen_lang, $languages)) {
-                if (! file_exists('lang/' . $choosen_lang . '.php')) {
-                    response(trans('Lang_Not_Found').AddErrorLocation())->send();
-                    exit;
-                } else {
-                    $_SESSION['RF']['language'] = $choosen_lang;
-                }
+            if ($choosen_lang && array_key_exists($choosen_lang, $languages) && file_exists('lang/' . $choosen_lang . '.php')) {
+                setcookie('rfm_lang', $choosen_lang, time() + 365 * 86400, '/', '', false, true);
+                $_SESSION['RF']['language'] = $choosen_lang;
+            } else {
+                response(trans('Lang_Not_Found').AddErrorLocation())->send();
+                exit;
             }
 
             break;

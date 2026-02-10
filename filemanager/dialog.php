@@ -26,17 +26,12 @@ if (isset($_POST['submit'])) {
 } else {
     $available_languages = include 'lang/languages.php';
 
-    list($preferred_language) = array_values(array_filter(array(
-        $_GET['lang'] ?? null,
-        $_SESSION['RF']['language'] ?? null,
-        $config['default_language']
-    )));
-
-    if (array_key_exists($preferred_language, $available_languages)) {
-        $_SESSION['RF']['language'] = $preferred_language;
-    } else {
-        $_SESSION['RF']['language'] = $config['default_language'];
+    // Language priority: cookie > default_language
+    $preferred_language = $_COOKIE['rfm_lang'] ?? $config['default_language'];
+    if (!array_key_exists($preferred_language, $available_languages)) {
+        $preferred_language = $config['default_language'];
     }
+    $_SESSION['RF']['language'] = $preferred_language;
 }
 
 include_once 'include/utils.php';
@@ -356,36 +351,28 @@ $get_params = http_build_query($get_params);
             // Initialize TUI Image Editor after DOM ready
             <?php if (!empty($config['tui_active'])): ?>
             document.addEventListener('DOMContentLoaded', function() {
-                var editorContainer = document.getElementById('tui-image-editor');
-                if (editorContainer && typeof tui !== 'undefined' && tui.ImageEditor) {
-                    // Set fabric.js to use crossOrigin for all images
-                    if (typeof fabric !== 'undefined') {
-                        fabric.Image.prototype.crossOrigin = 'anonymous';
-                    }
-
-                    image_editor = new tui.ImageEditor(editorContainer, {
-                        includeUI: {
-                            loadImage: {
-                                path: '',
-                                name: 'Blank'
-                            },
-                            menu: ['crop', 'flip', 'rotate', 'draw', 'shape', 'text', 'filter'],
-                            initMenu: '',
-                            uiSize: {
-                                width: '100%',
-                                height: '100%'
-                            },
-                            menuBarPosition: '<?php echo $config['tui_position'] ?? 'bottom'; ?>'
-                        },
-                        cssMaxWidth: 1200,
-                        cssMaxHeight: 800,
-                        usageStatistics: false,
-                        selectionStyle: {
-                            cornerSize: 20,
-                            rotatingPointOffset: 70
-                        }
-                    });
+                var el = document.getElementById('tui-image-editor');
+                if (!el || typeof tui === 'undefined' || !tui.ImageEditor) return;
+                if (typeof fabric !== 'undefined') fabric.Image.prototype.crossOrigin = 'anonymous';
+                <?php
+                // Build TUI locale from lang file (TUI_ prefixed keys)
+                $tui_locale = [];
+                foreach ($lang_vars as $k => $v) {
+                    if (strpos($k, 'TUI_') === 0) $tui_locale[substr($k, 4)] = $v;
                 }
+                ?>
+                image_editor = new tui.ImageEditor(el, {
+                    includeUI: {
+                        loadImage: {path: '', name: 'Blank'},
+                        locale: <?php echo json_encode($tui_locale, JSON_UNESCAPED_UNICODE); ?>,
+                        menu: ['crop','flip','rotate','draw','shape','text','filter'],
+                        initMenu: '',
+                        uiSize: {width: '100%', height: '100%'},
+                        menuBarPosition: '<?php echo $config['tui_position'] ?? 'bottom'; ?>'
+                    },
+                    cssMaxWidth: 1200, cssMaxHeight: 800, usageStatistics: false,
+                    selectionStyle: {cornerSize: 20, rotatingPointOffset: 70}
+                });
             });
             <?php endif; ?>
 
@@ -1361,10 +1348,10 @@ $files = $sorted;
     <!-- TUI Image Editor Container -->
     <div id="tui-image-editor-wrapper" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:#1e1e1e;flex-direction:column;">
         <div id="tui-editor-toolbar" style="height:50px;background:#2d2d2d;display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:0 15px;border-bottom:1px solid #444;flex-shrink:0;">
-            <button type="button" id="tui-save-btn" title="Save" style="width:40px;height:40px;border:none;border-radius:4px;background:#28a745;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+            <button type="button" id="tui-save-btn" title="<?php echo trans('Image_Editor_Save'); ?>" style="width:40px;height:40px;border:none;border-radius:4px;background:#28a745;cursor:pointer;display:flex;align-items:center;justify-content:center;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
             </button>
-            <button type="button" id="tui-close-btn" title="Close" style="width:40px;height:40px;border:none;border-radius:4px;background:#6c757d;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+            <button type="button" id="tui-close-btn" title="<?php echo trans('Image_Editor_Exit'); ?>" style="width:40px;height:40px;border:none;border-radius:4px;background:#6c757d;cursor:pointer;display:flex;align-items:center;justify-content:center;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
         </div>
@@ -1419,10 +1406,10 @@ $files = $sorted;
                     window.location.href = jQuery('#refresh').attr('href') + '&' + new Date().getTime();
                 }).fail(function(xhr) {
                     hide_animation();
-                    bootbox.alert('Error saving image: ' + xhr.responseText);
+                    bootbox.alert('<?php echo trans('Image_Editor_No_Save'); ?>');
                 });
             } else {
-                bootbox.alert('Cannot find editor canvas');
+                bootbox.alert('<?php echo trans('Image_Editor_No_Save'); ?>');
             }
         });
 

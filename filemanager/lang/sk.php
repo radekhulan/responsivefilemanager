@@ -1,6 +1,6 @@
 <?php
 
-return [
+return array(
 
     'Select' => 'Vybrať',
     'Deselect_All' => 'Deselect All',
@@ -44,7 +44,7 @@ return [
     'Upload_base_help' => "Drag & Drop files(modern browsers) or click in upper button to Add the file(s) and click on Start upload. When the upload is complete, click the 'Return to files list' button.",
     'Upload_add_files' => 'Add file(s)',
     'Upload_start' => 'Start upload',
-    'Upload_error_messages' => [
+    'Upload_error_messages' =>array(
         1 => 'The uploaded file exceeds the upload_max_filesize directive in php.ini',
         2 => 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form',
         3 => 'The uploaded file was only partially uploaded',
@@ -63,7 +63,7 @@ return [
         'min_height' => 'Image requires a minimum height',
         'abort' => 'File upload aborted',
         'image_resize' => 'Failed to resize image'
-    ],
+    ),
     'Upload_url' => 'From url',
     'Type_dir' => 'dir',
     'Type' => 'Typ',
@@ -143,5 +143,27 @@ return [
     'MB' => "MB",
     'GB' => "GB",
     'TB' => "TB",
-    'total size' => "Total size",
-];
+    'total size' => "Celková veľkosť",
+
+	// TUI Image Editor
+	'TUI_Crop' => 'Orezať', 'TUI_Flip' => 'Prevrátiť', 'TUI_Rotate' => 'Otočiť', 'TUI_Draw' => 'Kresliť',
+	'TUI_Shape' => 'Tvar', 'TUI_Text' => 'Text', 'TUI_Filter' => 'Filter', 'TUI_Icon' => 'Ikona', 'TUI_Mask' => 'Maska',
+	'TUI_Apply' => 'Použiť', 'TUI_Cancel' => 'Zrušiť', 'TUI_Delete' => 'Zmazať', 'TUI_Delete-all' => 'Zmazať všetko',
+	'TUI_Undo' => 'Späť', 'TUI_Redo' => 'Znova', 'TUI_Reset' => 'Obnoviť', 'TUI_Download' => 'Stiahnuť', 'TUI_Load' => 'Načítať',
+	'TUI_Custom' => 'Vlastné', 'TUI_Square' => 'Štvorec', 'TUI_Lock Aspect Ratio' => 'Zamknúť pomer strán',
+	'TUI_Flip X' => 'Prevrátiť X', 'TUI_Flip Y' => 'Prevrátiť Y',
+	'TUI_Free' => 'Voľné', 'TUI_Straight' => 'Rovné', 'TUI_Color' => 'Farba', 'TUI_Range' => 'Rozsah',
+	'TUI_Rectangle' => 'Obdĺžnik', 'TUI_Circle' => 'Kruh', 'TUI_Triangle' => 'Trojuholník', 'TUI_Polygon' => 'Mnohouholník',
+	'TUI_Fill' => 'Výplň', 'TUI_Stroke' => 'Obrys',
+	'TUI_Bold' => 'Tučné', 'TUI_Italic' => 'Kurzíva', 'TUI_Underline' => 'Podčiarknuté',
+	'TUI_Left' => 'Vľavo', 'TUI_Center' => 'Na stred', 'TUI_Right' => 'Vpravo', 'TUI_Text size' => 'Veľkosť textu',
+	'TUI_Arrow' => 'Šípka', 'TUI_Arrow-2' => 'Šípka 2', 'TUI_Arrow-3' => 'Šípka 3',
+	'TUI_Star-1' => 'Hviezda 1', 'TUI_Star-2' => 'Hviezda 2', 'TUI_Bubble' => 'Bublina', 'TUI_Heart' => 'Srdce',
+	'TUI_Custom icon' => 'Vlastná ikona', 'TUI_Load Mask Image' => 'Načítať masku',
+	'TUI_Grayscale' => 'Odtiene šedej', 'TUI_Invert' => 'Invertovať', 'TUI_Sepia' => 'Sépia', 'TUI_Sepia2' => 'Sépia 2',
+	'TUI_Blur' => 'Rozostrenie', 'TUI_Sharpen' => 'Zaostrenie', 'TUI_Emboss' => 'Reliéf', 'TUI_Remove White' => 'Odstrániť bielu',
+	'TUI_Brightness' => 'Jas', 'TUI_Noise' => 'Šum', 'TUI_Pixelate' => 'Pixelizácia', 'TUI_Color Filter' => 'Farebný filter',
+	'TUI_Tint' => 'Tónovanie', 'TUI_Multiply' => 'Násobenie', 'TUI_Blend' => 'Prelínanie',
+	'TUI_Distance' => 'Vzdialenosť', 'TUI_Threshold' => 'Prah', 'TUI_Location' => 'Pozícia',
+	'TUI_Width' => 'Šírka', 'TUI_Height' => 'Výška',
+);

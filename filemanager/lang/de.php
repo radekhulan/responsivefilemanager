@@ -1,6 +1,6 @@
 <?php
 
-return [
+return array(
 
     'Select' => 'Ausw&auml;hlen',
     'Deselect_All' => 'Alle abw&auml;hlen',
@@ -44,7 +44,7 @@ return [
     'Upload_base_help' => "Ziehen Sie die Dateien per Drag & Drop auf die Fl&auml;che (moderne Browser) oder klicken Sie auf die obere Schaltfl&auml;che, um die Datei(en) hinzuzuf&uuml;gen und klicken Sie auf \"Hochladen beginnen\". Wenn das Hochladen abgeschlossen ist, klicken Sie auf die Schaltfl&auml;che \"Zur Dateiliste zur&uuml;ckkehren\".",
     'Upload_add_files' => 'Dateien hinzuf&uuml;gen',
     'Upload_start' => 'Hochladen beginnen',
-    'Upload_error_messages' => [
+    'Upload_error_messages' => array(
         1 => 'Die hochgeladene Datei &uuml;berschreitet die Anweisung \"upload_max_filesize\" in der php.ini',
         2 => 'Die hochgeladene Datei &uuml;berschreitet die Anweisung \"MAX_FILE_SIZE\", die im HTML-Formular angegeben wurde',
         3 => 'Die hochgeladene Datei wurde nur teilweise hochgeladen',
@@ -63,7 +63,7 @@ return [
         'min_height' => 'Bild erfordert eine minimale H&ouml;he',
         'abort' => 'Hochladen abgebrochen',
         'image_resize' => 'Fehler beim &Auml;ndern der Bildgr&ouml;&szlig;e'
-    ],
+    ),
     'Upload_url' => 'Von URL',
     'Type_dir' => 'Verzeichnis',
     'Type' => 'Typ',
@@ -96,8 +96,8 @@ return [
     'Copy_Cut_Count_Limit' => 'Sie haben zu viele Dateien/Ordner zum %s ausgew&auml;lt. Limit: %d Dateien pro Aktion', // %s = cut or copy
     'Copy_Cut_Not_Allowed' => 'Sie haben nicht die Berechtigungen zum %s von Dateien.', // %s(1) = cut or copy, %s(2) = files or folders
     'Image_Editor_No_Save' => 'Das Bild konnte nicht gespeichert werden.',
-    'Image_Editor_Exit' => "Schlie&szlig;en",
-    'Image_Editor_Save' => "Speichern",
+    'Image_Editor_Exit' => "Ausgang",
+    'Image_Editor_Save' => "Sparen",
     'Zip_No_Extract' => 'Zip Datei konnte nicht entpackt werden. Die Datei ist m&ouml;glicherweise besch&auml;digt.',
     'Zip_Invalid' => 'Dieses Dateiformat wird nicht unterst&uuml;zt. Zugelassene Formate: zip, gz und tar.',
     'Dir_No_Write' => 'Dieses Dateiverzeichis ist schreibgesch&uuml;tzt.',
@@ -144,4 +144,26 @@ return [
     'GB' => "GB",
     'TB' => "TB",
     'total size' => "Gesamtgr&ouml;&szlig;e",
-];
+
+	// TUI Image Editor
+	'TUI_Crop' => 'Zuschneiden', 'TUI_Flip' => 'Spiegeln', 'TUI_Rotate' => 'Drehen', 'TUI_Draw' => 'Zeichnen',
+	'TUI_Shape' => 'Form', 'TUI_Text' => 'Text', 'TUI_Filter' => 'Filter', 'TUI_Icon' => 'Symbol', 'TUI_Mask' => 'Maske',
+	'TUI_Apply' => 'Anwenden', 'TUI_Cancel' => 'Abbrechen', 'TUI_Delete' => 'Löschen', 'TUI_Delete-all' => 'Alles löschen',
+	'TUI_Undo' => 'Rückgängig', 'TUI_Redo' => 'Wiederholen', 'TUI_Reset' => 'Zurücksetzen', 'TUI_Download' => 'Herunterladen', 'TUI_Load' => 'Laden',
+	'TUI_Custom' => 'Benutzerdefiniert', 'TUI_Square' => 'Quadrat', 'TUI_Lock Aspect Ratio' => 'Seitenverhältnis sperren',
+	'TUI_Flip X' => 'Horizontal spiegeln', 'TUI_Flip Y' => 'Vertikal spiegeln',
+	'TUI_Free' => 'Frei', 'TUI_Straight' => 'Gerade', 'TUI_Color' => 'Farbe', 'TUI_Range' => 'Bereich',
+	'TUI_Rectangle' => 'Rechteck', 'TUI_Circle' => 'Kreis', 'TUI_Triangle' => 'Dreieck', 'TUI_Polygon' => 'Polygon',
+	'TUI_Fill' => 'Füllung', 'TUI_Stroke' => 'Kontur',
+	'TUI_Bold' => 'Fett', 'TUI_Italic' => 'Kursiv', 'TUI_Underline' => 'Unterstrichen',
+	'TUI_Left' => 'Links', 'TUI_Center' => 'Mitte', 'TUI_Right' => 'Rechts', 'TUI_Text size' => 'Textgröße',
+	'TUI_Arrow' => 'Pfeil', 'TUI_Arrow-2' => 'Pfeil 2', 'TUI_Arrow-3' => 'Pfeil 3',
+	'TUI_Star-1' => 'Stern 1', 'TUI_Star-2' => 'Stern 2', 'TUI_Bubble' => 'Blase', 'TUI_Heart' => 'Herz',
+	'TUI_Custom icon' => 'Eigenes Symbol', 'TUI_Load Mask Image' => 'Maskenbild laden',
+	'TUI_Grayscale' => 'Graustufen', 'TUI_Invert' => 'Invertieren', 'TUI_Sepia' => 'Sepia', 'TUI_Sepia2' => 'Sepia 2',
+	'TUI_Blur' => 'Weichzeichnen', 'TUI_Sharpen' => 'Schärfen', 'TUI_Emboss' => 'Prägen', 'TUI_Remove White' => 'Weiß entfernen',
+	'TUI_Brightness' => 'Helligkeit', 'TUI_Noise' => 'Rauschen', 'TUI_Pixelate' => 'Pixeln', 'TUI_Color Filter' => 'Farbfilter',
+	'TUI_Tint' => 'Tönung', 'TUI_Multiply' => 'Multiplizieren', 'TUI_Blend' => 'Mischen',
+	'TUI_Distance' => 'Abstand', 'TUI_Threshold' => 'Schwellenwert', 'TUI_Location' => 'Position',
+	'TUI_Width' => 'Breite', 'TUI_Height' => 'H&ouml;he',
+);

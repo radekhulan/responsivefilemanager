@@ -1,6 +1,6 @@
 <?php
 
-return [
+return array(
 
     'Select' => 'Tallózás',
     'Deselect_All' => 'Kijelölés törlése',
@@ -44,7 +44,7 @@ return [
     'Upload_base_help' => "Húzza ide a feltölteni kívánt fájlokat, vagy kattintson a 'Fájl(ok) hozzáadása gombra. Ha kiválasztotta a fájlokat kattintson a 'Feltöltés indítása' gomba. Miután elkészült a feltöltés kattintson a fenti 'Vissza a fájllistához' gombra.",
     'Upload_add_files' => 'Fájl(ok) hozzáadása',
     'Upload_start' => 'Feltöltés elindítása',
-    'Upload_error_messages' => [
+    'Upload_error_messages' =>array(
         1 => 'The uploaded file exceeds the upload_max_filesize directive in php.ini',
         2 => 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form',
         3 => 'The uploaded file was only partially uploaded',
@@ -63,7 +63,7 @@ return [
         'min_height' => 'A kép mérete nem éri el a minimális magasságot!',
         'abort' => 'File upload aborted',
         'image_resize' => 'A kép átméretézése sikertelen!'
-    ],
+    ),
     'Upload_url' => 'Feltöltés URL-ről',
     'Type_dir' => 'Mappa',
     'Type' => 'Típus',
@@ -143,5 +143,27 @@ return [
     'MB' => "MB",
     'GB' => "GB",
     'TB' => "TB",
-    'total size' => "Total size",
-];
+    'total size' => "Teljes méret",
+
+	// TUI Image Editor
+	'TUI_Crop' => 'Vágás', 'TUI_Flip' => 'Tükrözés', 'TUI_Rotate' => 'Forgatás', 'TUI_Draw' => 'Rajzolás',
+	'TUI_Shape' => 'Alakzat', 'TUI_Text' => 'Szöveg', 'TUI_Filter' => 'Szűrő', 'TUI_Icon' => 'Ikon', 'TUI_Mask' => 'Maszk',
+	'TUI_Apply' => 'Alkalmaz', 'TUI_Cancel' => 'Mégse', 'TUI_Delete' => 'Törlés', 'TUI_Delete-all' => 'Összes törlése',
+	'TUI_Undo' => 'Visszavonás', 'TUI_Redo' => 'Újra', 'TUI_Reset' => 'Visszaállítás', 'TUI_Download' => 'Letöltés', 'TUI_Load' => 'Betöltés',
+	'TUI_Custom' => 'Egyéni', 'TUI_Square' => 'Négyzet', 'TUI_Lock Aspect Ratio' => 'Képarány zárolása',
+	'TUI_Flip X' => 'Tükrözés X', 'TUI_Flip Y' => 'Tükrözés Y',
+	'TUI_Free' => 'Szabad', 'TUI_Straight' => 'Egyenes', 'TUI_Color' => 'Szín', 'TUI_Range' => 'Tartomány',
+	'TUI_Rectangle' => 'Téglalap', 'TUI_Circle' => 'Kör', 'TUI_Triangle' => 'Háromszög', 'TUI_Polygon' => 'Sokszög',
+	'TUI_Fill' => 'Kitöltés', 'TUI_Stroke' => 'Körvonal',
+	'TUI_Bold' => 'Félkövér', 'TUI_Italic' => 'Dőlt', 'TUI_Underline' => 'Aláhúzott',
+	'TUI_Left' => 'Balra', 'TUI_Center' => 'Középre', 'TUI_Right' => 'Jobbra', 'TUI_Text size' => 'Szövegméret',
+	'TUI_Arrow' => 'Nyíl', 'TUI_Arrow-2' => 'Nyíl 2', 'TUI_Arrow-3' => 'Nyíl 3',
+	'TUI_Star-1' => 'Csillag 1', 'TUI_Star-2' => 'Csillag 2', 'TUI_Bubble' => 'Buborék', 'TUI_Heart' => 'Szív',
+	'TUI_Custom icon' => 'Egyéni ikon', 'TUI_Load Mask Image' => 'Maszk betöltése',
+	'TUI_Grayscale' => 'Szürkeárnyalat', 'TUI_Invert' => 'Invertálás', 'TUI_Sepia' => 'Szépia', 'TUI_Sepia2' => 'Szépia 2',
+	'TUI_Blur' => 'Elmosás', 'TUI_Sharpen' => 'Élesítés', 'TUI_Emboss' => 'Domborítás', 'TUI_Remove White' => 'Fehér eltávolítása',
+	'TUI_Brightness' => 'Fényerő', 'TUI_Noise' => 'Zaj', 'TUI_Pixelate' => 'Pixelezés', 'TUI_Color Filter' => 'Színszűrő',
+	'TUI_Tint' => 'Színezés', 'TUI_Multiply' => 'Szorzás', 'TUI_Blend' => 'Keverés',
+	'TUI_Distance' => 'Távolság', 'TUI_Threshold' => 'Küszöb', 'TUI_Location' => 'Pozíció',
+	'TUI_Width' => 'Szélesség', 'TUI_Height' => 'Magasság',
+);

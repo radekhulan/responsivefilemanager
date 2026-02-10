@@ -42,51 +42,20 @@ if ( ! function_exists('trans'))
 		return (array_key_exists($var, $lang_vars)) ? $lang_vars[ $var ] : $var;
 	}
 
-	// language
-	if ( ! isset($_SESSION['RF']['language'])
-		|| file_exists('lang/' . basename((string)($_SESSION['RF']['language'])) . '.php') === false
-		|| ! is_readable('lang/' . basename((string)($_SESSION['RF']['language'])) . '.php')
-	)
-	{
+	// language: cookie > session > default
+	$lang = $_COOKIE['rfm_lang'] ?? $_SESSION['RF']['language'] ?? $config['default_language'];
+	$lang = basename(trim((string)$lang)); // sanitize
+
+	$lang_file = file_exists('lang/' . $lang . '.php') ? 'lang/' . $lang . '.php'
+		: (file_exists('../lang/' . $lang . '.php') ? '../lang/' . $lang . '.php' : null);
+
+	if (!$lang_file) {
 		$lang = $config['default_language'];
-
-		if (isset($_GET['lang']) && $_GET['lang'] != 'undefined' && $_GET['lang'] != '')
-		{
-			$lang = fix_get_params($_GET['lang']);
-			$lang = trim((string)$lang);
-		}
-
-		if ($lang != $config['default_language'])
-		{
-			$path_parts = pathinfo($lang);
-			$lang = $path_parts['basename'];
-			$languages = include 'lang/languages.php';
-		}
-
-		// add lang file to session for easy include
-		$_SESSION['RF']['language'] = $lang;
+		$lang_file = file_exists('lang/' . $lang . '.php') ? 'lang/' . $lang . '.php' : '../lang/' . $lang . '.php';
 	}
-	else
-	{
-		if(file_exists('lang/languages.php')){
-			$languages = include 'lang/languages.php';
-		}else{
-			$languages = include '../lang/languages.php';
-		}
 
-		if(array_key_exists($_SESSION['RF']['language'],$languages)){
-			$lang = $_SESSION['RF']['language'];
-		}else{
-			response('Lang_Not_Found'.AddErrorLocation())->send();
-			exit;
-		}
-
-	}
-	if(file_exists('lang/' . $lang . '.php')){
-		$lang_vars = include 'lang/' . $lang . '.php';
-	}else{
-		$lang_vars = include '../lang/' . $lang . '.php';
-	}
+	$_SESSION['RF']['language'] = $lang;
+	$lang_vars = include $lang_file;
 
 	if ( ! is_array($lang_vars))
 	{

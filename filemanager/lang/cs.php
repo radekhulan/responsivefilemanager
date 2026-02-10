@@ -1,6 +1,6 @@
 <?php
 
-return [
+return array(
 
 	'Select' => 'Vybrat',
 	'Deselect_All' => 'Zrušit vše',
@@ -41,10 +41,10 @@ return [
 	'Text_filter' => 'textový filtr',
 	'Swipe_help' => 'Pro zobrazení možností klikněte na název souboru/složky.',
 	'Upload_base' => 'Základní nahrávání',
-	'Upload_base_help' => "Soubory přetáhněte (pouze moderní prohlížeče) nebo klikněte na horní tlačítko 'Přidat soubor(y)' a poté na tlačítko 'Spustit nahrávání'. Až bude nahrávání dokončeno, klikněte na 'Zpět k seznamu souborů'.",
+	'Upload_base_help' => "Soubory přetáhněte nebo klikněte na tlačítko 'Přidat soubor(y)'. Nahrávání proběhne automaticky. Až bude nahrávání dokončeno, klikněte na 'Zpět k seznamu souborů'.",
 	'Upload_add_files' => 'Přidat soubor(y)',
-	'Upload_start' => 'Spustit nahrávání',
-	'Upload_error_messages' => [
+	'Upload_start' => 'Sputit nahrávání',
+	'Upload_error_messages' =>array(
 		1 => 'Nahrávaný soubor má větší velikost, než co povoluje direktiva upload_max_filesize v php.ini',
 		2 => 'Nahrávaný soubor má větší velikost, než co povoluje direktiva MAX_FILE_SIZE uvedená v HTML formuláři',
 		3 => 'Soubor byl nahrán pouze z části',
@@ -63,7 +63,7 @@ return [
 		'min_height' => 'Obrázek vyžaduje minimální výšku',
 		'abort' => 'Nahrávání souboru bylo přerušeno',
 		'image_resize' => 'Nepodařilo se změnit velikost obrázku'
-    ],
+	),
 	'Upload_url' => 'Z url adresy',
 	'Type_dir' => 'složka',
 	'Type' => 'Typ',
@@ -96,8 +96,8 @@ return [
 	'Copy_Cut_Count_Limit' => 'Zvolili jste příliš mnoho souborů/složek pro operaci %s. Limit: %d souborů/operace', // %s = cut or copy
 	'Copy_Cut_Not_Allowed' => 'Nemáte oprávnění %s.', // %s(1) = cut or copy, %s(2) = files or folders
 	'Image_Editor_No_Save' => 'Obrázek nelze uložit',
-	'Image_Editor_Exit' => "Exit",
-    'Image_Editor_Save' => "Uložit",
+	'Image_Editor_Exit' => "Zavřít",
+	'Image_Editor_Save' => "Uložit",
     'Zip_No_Extract' => 'Archív nelze rozbalit. Soubor může být poškozen.',
 	'Zip_Invalid' => 'Přípona není podporována. Povolené: zip, gz, tar.',
 	'Dir_No_Write' => 'Vybraná složka není zapisovatelná.',
@@ -124,7 +124,7 @@ return [
 	'Upload_message' => "Pro nahrání přetáhněte soubor(y) sem",
 
 	'SERVER ERROR' => "CHYBA SERVERU",
-	'forbidden' => "Zakázáno",
+	'forbiden' => "Zakázáno",
 	'wrong path' => "Neplatná cesta",
 	'wrong name' => "Neplatná název",
 	'wrong extension' => "Neplatná přípona",
@@ -144,4 +144,26 @@ return [
 	'GB' => "GB",
 	'TB' => "TB",
 	'total size' => "Celková velikost",
-];
+
+	// TUI Image Editor
+	'TUI_Crop' => 'Ořez', 'TUI_Flip' => 'Převrátit', 'TUI_Rotate' => 'Otočit', 'TUI_Draw' => 'Kreslit',
+	'TUI_Shape' => 'Tvar', 'TUI_Text' => 'Text', 'TUI_Filter' => 'Filtr', 'TUI_Icon' => 'Ikona', 'TUI_Mask' => 'Maska',
+	'TUI_Apply' => 'Použít', 'TUI_Cancel' => 'Zrušit', 'TUI_Delete' => 'Smazat', 'TUI_Delete-all' => 'Smazat vše',
+	'TUI_Undo' => 'Zpět', 'TUI_Redo' => 'Znovu', 'TUI_Reset' => 'Obnovit', 'TUI_Download' => 'Stáhnout', 'TUI_Load' => 'Načíst',
+	'TUI_Custom' => 'Vlastní', 'TUI_Square' => 'Čtverec', 'TUI_Lock Aspect Ratio' => 'Zamknout poměr stran',
+	'TUI_Flip X' => 'Převrátit X', 'TUI_Flip Y' => 'Převrátit Y',
+	'TUI_Free' => 'Volné', 'TUI_Straight' => 'Rovné', 'TUI_Color' => 'Barva', 'TUI_Range' => 'Rozsah',
+	'TUI_Rectangle' => 'Obdélník', 'TUI_Circle' => 'Kruh', 'TUI_Triangle' => 'Trojúhelník', 'TUI_Polygon' => 'Mnohoúhelník',
+	'TUI_Fill' => 'Výplň', 'TUI_Stroke' => 'Obrys',
+	'TUI_Bold' => 'Tučné', 'TUI_Italic' => 'Kurzíva', 'TUI_Underline' => 'Podtržené',
+	'TUI_Left' => 'Vlevo', 'TUI_Center' => 'Na střed', 'TUI_Right' => 'Vpravo', 'TUI_Text size' => 'Velikost textu',
+	'TUI_Arrow' => 'Šipka', 'TUI_Arrow-2' => 'Šipka 2', 'TUI_Arrow-3' => 'Šipka 3',
+	'TUI_Star-1' => 'Hvězda 1', 'TUI_Star-2' => 'Hvězda 2', 'TUI_Bubble' => 'Bublina', 'TUI_Heart' => 'Srdce',
+	'TUI_Custom icon' => 'Vlastní ikona', 'TUI_Load Mask Image' => 'Načíst masku',
+	'TUI_Grayscale' => 'Stupně šedi', 'TUI_Invert' => 'Invertovat', 'TUI_Sepia' => 'Sépia', 'TUI_Sepia2' => 'Sépia 2',
+	'TUI_Blur' => 'Rozostření', 'TUI_Sharpen' => 'Zostření', 'TUI_Emboss' => 'Reliéf', 'TUI_Remove White' => 'Odstranit bílou',
+	'TUI_Brightness' => 'Jas', 'TUI_Noise' => 'Šum', 'TUI_Pixelate' => 'Pixelizace', 'TUI_Color Filter' => 'Barevný filtr',
+	'TUI_Tint' => 'Tónování', 'TUI_Multiply' => 'Násobení', 'TUI_Blend' => 'Prolnutí',
+	'TUI_Distance' => 'Vzdálenost', 'TUI_Threshold' => 'Práh', 'TUI_Location' => 'Pozice',
+	'TUI_Width' => 'Šířka', 'TUI_Height' => 'Výška',
+);

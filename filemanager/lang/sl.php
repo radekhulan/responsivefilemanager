@@ -1,6 +1,6 @@
 <?php
 
-return [
+return array(
 
     'Select' => 'Označi',
     'Deselect_All' => 'Deselect All',
@@ -44,7 +44,7 @@ return [
     'Upload_base_help' => "Drag & Drop files(modern browsers) or click in upper button to Add the file(s) and click on Start upload. When the upload is complete, click the 'Return to files list' button.",
     'Upload_add_files' => 'Add file(s)',
     'Upload_start' => 'Start upload',
-    'Upload_error_messages' => [
+    'Upload_error_messages' =>array(
         1 => 'The uploaded file exceeds the upload_max_filesize directive in php.ini',
         2 => 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form',
         3 => 'The uploaded file was only partially uploaded',
@@ -63,7 +63,7 @@ return [
         'min_height' => 'Image requires a minimum height',
         'abort' => 'File upload aborted',
         'image_resize' => 'Failed to resize image'
-    ],
+    ),
     'Upload_url' => 'From url',
     'Type_dir' => 'Mapa',
     'Type' => 'Vrsta',
@@ -143,5 +143,27 @@ return [
     'MB' => "MB",
     'GB' => "GB",
     'TB' => "TB",
-    'total size' => "Total size",
-];
+    'total size' => "Skupna velikost",
+
+	// TUI Image Editor
+	'TUI_Crop' => 'Obreži', 'TUI_Flip' => 'Zrcali', 'TUI_Rotate' => 'Zavrti', 'TUI_Draw' => 'Riši',
+	'TUI_Shape' => 'Oblika', 'TUI_Text' => 'Besedilo', 'TUI_Filter' => 'Filter', 'TUI_Icon' => 'Ikona', 'TUI_Mask' => 'Maska',
+	'TUI_Apply' => 'Uporabi', 'TUI_Cancel' => 'Prekliči', 'TUI_Delete' => 'Izbriši', 'TUI_Delete-all' => 'Izbriši vse',
+	'TUI_Undo' => 'Razveljavi', 'TUI_Redo' => 'Ponovi', 'TUI_Reset' => 'Ponastavi', 'TUI_Download' => 'Prenesi', 'TUI_Load' => 'Naloži',
+	'TUI_Custom' => 'Po meri', 'TUI_Square' => 'Kvadrat', 'TUI_Lock Aspect Ratio' => 'Zakleni razmerje',
+	'TUI_Flip X' => 'Zrcali X', 'TUI_Flip Y' => 'Zrcali Y',
+	'TUI_Free' => 'Prosto', 'TUI_Straight' => 'Ravno', 'TUI_Color' => 'Barva', 'TUI_Range' => 'Obseg',
+	'TUI_Rectangle' => 'Pravokotnik', 'TUI_Circle' => 'Krog', 'TUI_Triangle' => 'Trikotnik', 'TUI_Polygon' => 'Mnogokotnik',
+	'TUI_Fill' => 'Polnilo', 'TUI_Stroke' => 'Obroba',
+	'TUI_Bold' => 'Krepko', 'TUI_Italic' => 'Ležeče', 'TUI_Underline' => 'Podčrtano',
+	'TUI_Left' => 'Levo', 'TUI_Center' => 'Sredina', 'TUI_Right' => 'Desno', 'TUI_Text size' => 'Velikost besedila',
+	'TUI_Arrow' => 'Puščica', 'TUI_Arrow-2' => 'Puščica 2', 'TUI_Arrow-3' => 'Puščica 3',
+	'TUI_Star-1' => 'Zvezda 1', 'TUI_Star-2' => 'Zvezda 2', 'TUI_Bubble' => 'Oblak', 'TUI_Heart' => 'Srce',
+	'TUI_Custom icon' => 'Ikona po meri', 'TUI_Load Mask Image' => 'Naloži masko',
+	'TUI_Grayscale' => 'Sivine', 'TUI_Invert' => 'Invertiraj', 'TUI_Sepia' => 'Sepija', 'TUI_Sepia2' => 'Sepija 2',
+	'TUI_Blur' => 'Zameglitev', 'TUI_Sharpen' => 'Izostri', 'TUI_Emboss' => 'Relief', 'TUI_Remove White' => 'Odstrani belo',
+	'TUI_Brightness' => 'Svetlost', 'TUI_Noise' => 'Šum', 'TUI_Pixelate' => 'Pikselizacija', 'TUI_Color Filter' => 'Barvni filter',
+	'TUI_Tint' => 'Toniranje', 'TUI_Multiply' => 'Množenje', 'TUI_Blend' => 'Mešanje',
+	'TUI_Distance' => 'Razdalja', 'TUI_Threshold' => 'Prag', 'TUI_Location' => 'Položaj',
+	'TUI_Width' => 'Širina', 'TUI_Height' => 'Višina',
+);

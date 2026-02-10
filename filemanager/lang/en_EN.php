@@ -1,6 +1,6 @@
 <?php
 
-return [
+return array(
 
     'Select' => 'Select',
     'Deselect_All' => 'Deselect All',
@@ -44,7 +44,7 @@ return [
     'Upload_base_help' => "Drag & Drop files(modern browsers) or click in upper button to Add the file(s) and click on Start upload. When the upload is complete, click the 'Return to files list' button.",
     'Upload_add_files' => 'Add file(s)',
     'Upload_start' => 'Start upload',
-    'Upload_error_messages' => [
+    'Upload_error_messages' =>array(
         1 => 'The uploaded file exceeds the upload_max_filesize directive in php.ini',
         2 => 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form',
         3 => 'The uploaded file was only partially uploaded',
@@ -63,7 +63,7 @@ return [
         'min_height' => 'Image requires a minimum height',
         'abort' => 'File upload aborted',
         'image_resize' => 'Failed to resize image'
-    ],
+    ),
     'Upload_url' => 'From url',
     'Type_dir' => 'dir',
     'Type' => 'Type',
@@ -142,5 +142,27 @@ return [
     'MB' => "MB",
     'GB' => "GB",
     'TB' => "TB",
-    'total size' => "Total size"
-];
+    'total size' => "Total size",
+
+	// TUI Image Editor
+	'TUI_Crop' => 'Crop', 'TUI_Flip' => 'Flip', 'TUI_Rotate' => 'Rotate', 'TUI_Draw' => 'Draw',
+	'TUI_Shape' => 'Shape', 'TUI_Text' => 'Text', 'TUI_Filter' => 'Filter', 'TUI_Icon' => 'Icon', 'TUI_Mask' => 'Mask',
+	'TUI_Apply' => 'Apply', 'TUI_Cancel' => 'Cancel', 'TUI_Delete' => 'Delete', 'TUI_Delete-all' => 'Delete all',
+	'TUI_Undo' => 'Undo', 'TUI_Redo' => 'Redo', 'TUI_Reset' => 'Reset', 'TUI_Download' => 'Download', 'TUI_Load' => 'Load',
+	'TUI_Custom' => 'Custom', 'TUI_Square' => 'Square', 'TUI_Lock Aspect Ratio' => 'Lock Aspect Ratio',
+	'TUI_Flip X' => 'Flip X', 'TUI_Flip Y' => 'Flip Y',
+	'TUI_Free' => 'Free', 'TUI_Straight' => 'Straight', 'TUI_Color' => 'Color', 'TUI_Range' => 'Range',
+	'TUI_Rectangle' => 'Rectangle', 'TUI_Circle' => 'Circle', 'TUI_Triangle' => 'Triangle', 'TUI_Polygon' => 'Polygon',
+	'TUI_Fill' => 'Fill', 'TUI_Stroke' => 'Stroke',
+	'TUI_Bold' => 'Bold', 'TUI_Italic' => 'Italic', 'TUI_Underline' => 'Underline',
+	'TUI_Left' => 'Left', 'TUI_Center' => 'Center', 'TUI_Right' => 'Right', 'TUI_Text size' => 'Text size',
+	'TUI_Arrow' => 'Arrow', 'TUI_Arrow-2' => 'Arrow 2', 'TUI_Arrow-3' => 'Arrow 3',
+	'TUI_Star-1' => 'Star 1', 'TUI_Star-2' => 'Star 2', 'TUI_Bubble' => 'Bubble', 'TUI_Heart' => 'Heart',
+	'TUI_Custom icon' => 'Custom icon', 'TUI_Load Mask Image' => 'Load Mask Image',
+	'TUI_Grayscale' => 'Grayscale', 'TUI_Invert' => 'Invert', 'TUI_Sepia' => 'Sepia', 'TUI_Sepia2' => 'Sepia 2',
+	'TUI_Blur' => 'Blur', 'TUI_Sharpen' => 'Sharpen', 'TUI_Emboss' => 'Emboss', 'TUI_Remove White' => 'Remove White',
+	'TUI_Brightness' => 'Brightness', 'TUI_Noise' => 'Noise', 'TUI_Pixelate' => 'Pixelate', 'TUI_Color Filter' => 'Color Filter',
+	'TUI_Tint' => 'Tint', 'TUI_Multiply' => 'Multiply', 'TUI_Blend' => 'Blend',
+	'TUI_Distance' => 'Distance', 'TUI_Threshold' => 'Threshold', 'TUI_Location' => 'Location',
+	'TUI_Width' => 'Width', 'TUI_Height' => 'Height',
+);

@@ -1,6 +1,6 @@
 <?php
 
-return [
+return array(
 
     'Select' => 'Seleziona',
     'Deselect_All' => 'Deselect All',
@@ -44,7 +44,7 @@ return [
     'Upload_add_files' => 'Aggiungi file',
     'Upload_start' => "Esegui l'upload",
     'Upload_base_help' => "Trascina i file nell'area superiore (per i moderni browser) o clicca sul bottone \"Aggiungi file\" e clicca sul bottone \"Esegui l'upload\".  Quando il caricamento dei file è terminato clicca sul bottone di ritorno in alto.",
-    'Upload_error_messages' => [
+    'Upload_error_messages' =>array(
         1 => 'The uploaded file exceeds the upload_max_filesize directive in php.ini',
         2 => 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form',
         3 => 'The uploaded file was only partially uploaded',
@@ -63,7 +63,7 @@ return [
         'min_height' => 'Image requires a minimum height',
         'abort' => 'File upload aborted',
         'image_resize' => 'Failed to resize image'
-    ],
+    ),
     'Upload_url' => 'URL',
     'Type_dir' => 'dir',
     'Type' => 'Tipo',
@@ -143,5 +143,27 @@ return [
     'MB' => "MB",
     'GB' => "GB",
     'TB' => "TB",
-    'total size' => "Total size"
-];
+    'total size' => "Dimensione totale",
+
+	// TUI Image Editor
+	'TUI_Crop' => 'Ritaglia', 'TUI_Flip' => 'Capovolgi', 'TUI_Rotate' => 'Ruota', 'TUI_Draw' => 'Disegna',
+	'TUI_Shape' => 'Forma', 'TUI_Text' => 'Testo', 'TUI_Filter' => 'Filtro', 'TUI_Icon' => 'Icona', 'TUI_Mask' => 'Maschera',
+	'TUI_Apply' => 'Applica', 'TUI_Cancel' => 'Annulla', 'TUI_Delete' => 'Elimina', 'TUI_Delete-all' => 'Elimina tutto',
+	'TUI_Undo' => 'Annulla', 'TUI_Redo' => 'Ripeti', 'TUI_Reset' => 'Ripristina', 'TUI_Download' => 'Scarica', 'TUI_Load' => 'Carica',
+	'TUI_Custom' => 'Personalizzato', 'TUI_Square' => 'Quadrato', 'TUI_Lock Aspect Ratio' => 'Blocca proporzioni',
+	'TUI_Flip X' => 'Capovolgi X', 'TUI_Flip Y' => 'Capovolgi Y',
+	'TUI_Free' => 'Libero', 'TUI_Straight' => 'Rettilineo', 'TUI_Color' => 'Colore', 'TUI_Range' => 'Intervallo',
+	'TUI_Rectangle' => 'Rettangolo', 'TUI_Circle' => 'Cerchio', 'TUI_Triangle' => 'Triangolo', 'TUI_Polygon' => 'Poligono',
+	'TUI_Fill' => 'Riempimento', 'TUI_Stroke' => 'Contorno',
+	'TUI_Bold' => 'Grassetto', 'TUI_Italic' => 'Corsivo', 'TUI_Underline' => 'Sottolineato',
+	'TUI_Left' => 'Sinistra', 'TUI_Center' => 'Centro', 'TUI_Right' => 'Destra', 'TUI_Text size' => 'Dimensione testo',
+	'TUI_Arrow' => 'Freccia', 'TUI_Arrow-2' => 'Freccia 2', 'TUI_Arrow-3' => 'Freccia 3',
+	'TUI_Star-1' => 'Stella 1', 'TUI_Star-2' => 'Stella 2', 'TUI_Bubble' => 'Fumetto', 'TUI_Heart' => 'Cuore',
+	'TUI_Custom icon' => 'Icona personalizzata', 'TUI_Load Mask Image' => 'Carica maschera',
+	'TUI_Grayscale' => 'Scala di grigi', 'TUI_Invert' => 'Inverti', 'TUI_Sepia' => 'Seppia', 'TUI_Sepia2' => 'Seppia 2',
+	'TUI_Blur' => 'Sfocatura', 'TUI_Sharpen' => 'Nitidezza', 'TUI_Emboss' => 'Rilievo', 'TUI_Remove White' => 'Rimuovi bianco',
+	'TUI_Brightness' => 'Luminosità', 'TUI_Noise' => 'Rumore', 'TUI_Pixelate' => 'Pixelizzazione', 'TUI_Color Filter' => 'Filtro colore',
+	'TUI_Tint' => 'Tinta', 'TUI_Multiply' => 'Moltiplica', 'TUI_Blend' => 'Fusione',
+	'TUI_Distance' => 'Distanza', 'TUI_Threshold' => 'Soglia', 'TUI_Location' => 'Posizione',
+	'TUI_Width' => 'Larghezza', 'TUI_Height' => 'Altezza',
+);
