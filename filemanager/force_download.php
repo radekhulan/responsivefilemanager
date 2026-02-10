@@ -1,31 +1,38 @@
 <?php
+header('X-Content-Type-Options: nosniff');
 
-$config = include 'config/config.php';
+$config = require 'config/config.php';
 
 include 'include/utils.php';
 include 'include/mime_type_lib.php';
 
-if ($_SESSION['RF']["verify"] != "RESPONSIVEfilemanager") {
+if (($_SESSION['RF']["verify"] ?? '') !== "RESPONSIVEfilemanager") {
     response(trans('forbidden') . AddErrorLocation(), 403)->send();
     exit;
 }
 
-if (!checkRelativePath($_POST['path']) || strpos($_POST['path'], '/') === 0) {
+// CSRF protection
+if (!verifyCsrfToken()) {
+    response(trans('forbidden') . ' (CSRF)' . AddErrorLocation(), 403)->send();
+    exit;
+}
+
+if (!checkRelativePath($_POST['path'] ?? '') || strpos($_POST['path'] ?? '', '/') === 0) {
     response(trans('wrong path') . AddErrorLocation(), 400)->send();
     exit;
 }
 
-if (strpos($_POST['name'], '/') !== false) {
+if (strpos($_POST['name'] ?? '', '/') !== false) {
     response(trans('wrong path') . AddErrorLocation(), 400)->send();
     exit;
 }
 
-$path = $config['current_path'] . $_POST['path'];
+$path = $config['current_path'] . ($_POST['path'] ?? '');
 
-$name = $_POST['name'];
+$name = $_POST['name'] ?? '';
 $info = pathinfo($name);
 
-if (!check_extension($info['extension'], $config)) {
+if (!check_extension($info['extension'] ?? '', $config)) {
     response(trans('wrong extension') . AddErrorLocation(), 400)->send();
     exit;
 }
@@ -34,6 +41,11 @@ $file_name = $info['basename'];
 $file_ext = $info['extension'];
 $file_path = $path . $name;
 
+// Validate path is within allowed directories
+if (!validatePathSecurity($file_path, $config)) {
+    response(trans('wrong path') . AddErrorLocation(), 403)->send();
+    exit;
+}
 
 // make sure the file exists
 if (is_file($file_path) && is_readable($file_path)) {
@@ -56,7 +68,7 @@ if (is_file($file_path) && is_readable($file_path)) {
     }
 
 
-    @ob_end_clean();
+    if (ob_get_level()) ob_end_clean();
     if (ini_get('zlib.output_compression')) {
         ini_set('zlib.output_compression', 'Off');
     }
@@ -68,7 +80,9 @@ if (is_file($file_path) && is_readable($file_path)) {
     if (isset($_SERVER['HTTP_RANGE'])) {
         list($a, $range) = explode("=", $_SERVER['HTTP_RANGE'], 2);
         list($range) = explode(",", $range, 2);
-        list($range, $range_end) = explode("-", $range);
+        $range_parts = explode("-", $range, 2);
+        $range = $range_parts[0] ?? '';
+        $range_end = $range_parts[1] ?? '';
         $range = intval($range);
         if (!$range_end) {
             $range_end = $size - 1;

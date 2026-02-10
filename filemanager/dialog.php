@@ -1,7 +1,7 @@
 <?php
 $time = time();
 
-$config = include 'config/config.php';
+$config = require 'config/config.php';
 
 if (USE_ACCESS_KEYS == true){
 	if (!isset($_GET['akey'], $config['access_keys']) || empty($config['access_keys'])){
@@ -17,14 +17,18 @@ if (USE_ACCESS_KEYS == true){
 
 $_SESSION['RF']["verify"] = "RESPONSIVEfilemanager";
 
+// Generate CSRF token for this session
+include_once 'include/utils.php';
+$csrf_token = generateCsrfToken();
+
 if (isset($_POST['submit'])) {
     include 'upload.php';
 } else {
     $available_languages = include 'lang/languages.php';
 
     list($preferred_language) = array_values(array_filter(array(
-        isset($_GET['lang']) ? $_GET['lang'] : null,
-        isset($_SESSION['RF']['language']) ? $_SESSION['RF']['language'] : null,
+        $_GET['lang'] ?? null,
+        $_SESSION['RF']['language'] ?? null,
         $config['default_language']
     )));
 
@@ -35,7 +39,7 @@ if (isset($_POST['submit'])) {
     }
 }
 
-include 'include/utils.php';
+include_once 'include/utils.php';
 
 $dark_mode_active = isset($_COOKIE['rfm_dark_mode']) ? $_COOKIE['rfm_dark_mode'] === '1' : !empty($config['dark_mode']);
 
@@ -55,15 +59,15 @@ if (checkRelativePath($subdir_path)) {
     $subdir = '';
 }
 
-if ($subdir == "") {
-    if (!empty($_COOKIE['last_position']) && strpos($_COOKIE['last_position'], '.') === FALSE) {
-        $subdir = trim($_COOKIE['last_position']);
+if ($subdir === "") {
+    if (!empty($_COOKIE['last_position']) && strpos((string)$_COOKIE['last_position'], '.') === FALSE) {
+        $subdir = trim((string)$_COOKIE['last_position']);
     }
 }
 //remember last position
 setcookie('last_position', $subdir, time() + (86400 * 7));
 
-if ($subdir == "/") { $subdir = ""; }
+if ($subdir === "/") { $subdir = ""; }
 
 // If hidden folders are specified
 if (count($config['hidden_folders'])) {
@@ -97,7 +101,7 @@ if (!empty($_SESSION['RF']["subfolder"])
     $rfm_subfolder = $_SESSION['RF']['subfolder'];
 }
 
-if ($rfm_subfolder != "" && $rfm_subfolder[strlen($rfm_subfolder) - 1] != "/") {
+if ($rfm_subfolder !== "" && $rfm_subfolder[strlen($rfm_subfolder) - 1] !== "/") {
     $rfm_subfolder .= "/";
 }
 
@@ -290,7 +294,7 @@ $get_params = array(
 );
 if (isset($_GET['CKEditorFuncNum'])) {
     $get_params['CKEditorFuncNum'] = $_GET['CKEditorFuncNum'];
-    $get_params['CKEditor'] = (isset($_GET['CKEditor']) ? $_GET['CKEditor'] : '');
+    $get_params['CKEditor'] = $_GET['CKEditor'] ?? '';
 }
 $get_params['fldr'] ='';
 
@@ -400,6 +404,24 @@ $get_params = http_build_query($get_params);
             });
         </script>
 
+        <script>
+            // CSRF token for all AJAX requests
+            var defined_csrf_token = '<?php echo htmlspecialchars($csrf_token); ?>';
+            $.ajaxSetup({
+                beforeSend: function(xhr, settings) {
+                    xhr.setRequestHeader('X-CSRF-Token', defined_csrf_token);
+                    if (settings.type === 'POST') {
+                        if (settings.data instanceof FormData) {
+                            settings.data.append('csrf_token', defined_csrf_token);
+                        } else if (settings.data && typeof settings.data === 'string') {
+                            settings.data += '&csrf_token=' + encodeURIComponent(defined_csrf_token);
+                        } else if (!settings.data) {
+                            settings.data = 'csrf_token=' + encodeURIComponent(defined_csrf_token);
+                        }
+                    }
+                }
+            });
+        </script>
         <script src="script/include.js?v=<?php echo $version; ?>"></script>
 </head>
 <body>
@@ -426,6 +448,7 @@ $get_params = http_build_query($get_params);
     <!-- The File Upload user interface plugin -->
     <script src="script/jquery.fileupload-ui.js"></script>
 
+    <input type="hidden" id="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>" />
     <input type="hidden" id="ftp" value="" />
     <input type="hidden" id="popup" value="<?php echo $popup;?>" />
     <input type="hidden" id="callback" value="<?php echo $callback; ?>" />
@@ -455,7 +478,7 @@ $get_params = http_build_query($get_params);
     <input type="hidden" id="file_number_limit_js" value="<?php echo $config['file_number_limit_js'];?>" />
     <input type="hidden" id="sort_by" value="<?php echo $sort_by;?>" />
     <input type="hidden" id="descending" value="<?php echo $descending?1:0;?>" />
-    <input type="hidden" id="current_url" value="<?php echo str_replace(array('&filter='.$filter,'&sort_by='.$sort_by,'&descending='.intval($descending)),array(''),$config['base_url'].htmlspecialchars($_SERVER['REQUEST_URI']));?>" />
+    <input type="hidden" id="current_url" value="<?php echo htmlspecialchars(str_replace(array('&filter='.$filter,'&sort_by='.$sort_by,'&descending='.intval($descending)),array(''),$config['base_url'].$_SERVER['REQUEST_URI']), ENT_QUOTES, 'UTF-8');?>" />
     <input type="hidden" id="lang_show_url" value="<?php echo trans('Show_url');?>" />
     <input type="hidden" id="copy_cut_files_allowed" value="<?php if($config['copy_cut_files']) echo 1; else echo 0;?>" />
     <input type="hidden" id="copy_cut_dirs_allowed" value="<?php if($config['copy_cut_dirs']) echo 1; else echo 0;?>" />
@@ -463,6 +486,9 @@ $get_params = http_build_query($get_params);
     <input type="hidden" id="copy_cut_max_count" value="<?php echo $config['copy_cut_max_count'];?>" />
     <input type="hidden" id="lang_copy" value="<?php echo trans('Copy');?>" />
     <input type="hidden" id="lang_cut" value="<?php echo trans('Cut');?>" />
+    <input type="hidden" id="lang_erase" value="<?php echo trans('Erase');?>" />
+    <input type="hidden" id="lang_confirm_del" value="<?php echo trans('Confirm_del');?>" />
+    <input type="hidden" id="delete_files_allowed" value="<?php if($config['delete_files']) echo 1; else echo 0;?>" />
     <input type="hidden" id="lang_paste" value="<?php echo trans('Paste');?>" />
     <input type="hidden" id="lang_paste_here" value="<?php echo trans('Paste_Here');?>" />
     <input type="hidden" id="lang_paste_confirm" value="<?php echo trans('Paste_Confirm');?>" />
@@ -516,6 +542,7 @@ $get_params = http_build_query($get_params);
                 <div class="tab-pane active" id="baseUpload">
                     <!-- The file upload form used as target for the file upload widget -->
                     <form id="fileupload" action="" method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>" />
                         <div class="container2">
                             <!-- The global progress state -->
                             <div class="fileupload-progress">
@@ -640,6 +667,9 @@ $sorted = array();
 //$prev_folder=array();
 $current_files_number = 0;
 $current_folders_number = 0;
+if (!isset($filePermissions)) {
+    $filePermissions = [];
+}
 
 foreach ($files as $k => $file) {
         if ($file != "." && $file != "..") {
@@ -671,7 +701,7 @@ foreach ($files as $k => $file) {
                 $file_path = $config['current_path'] . $rfm_subfolder . $subdir . $file;
                 $date = filemtime($file_path);
                 $size = filesize($file_path);
-                $file_ext = substr(strrchr($file, '.'), 1);
+                $file_ext = ($dot = strrchr($file, '.')) !== false ? substr($dot, 1) : '';
                 $sorted[$k] = array(
                     'is_dir' => false,
                     'file' => $file,
@@ -690,11 +720,11 @@ function filenameSort($x, $y)
     global $descending;
 
     if ($x['is_dir'] !== $y['is_dir']) {
-        return $y['is_dir'];
+        return $y['is_dir'] <=> $x['is_dir'];
     } else {
         return ($descending)
-            ? $x['file_lcase'] < $y['file_lcase']
-            : $x['file_lcase'] >= $y['file_lcase'];
+            ? $y['file_lcase'] <=> $x['file_lcase']
+            : $x['file_lcase'] <=> $y['file_lcase'];
     }
 }
 
@@ -703,11 +733,11 @@ function dateSort($x, $y)
     global $descending;
 
     if ($x['is_dir'] !== $y['is_dir']) {
-        return $y['is_dir'];
+        return $y['is_dir'] <=> $x['is_dir'];
     } else {
         return ($descending)
-            ? $x['date'] < $y['date']
-            : $x['date'] >= $y['date'];
+            ? $y['date'] <=> $x['date']
+            : $x['date'] <=> $y['date'];
     }
 }
 
@@ -716,11 +746,11 @@ function sizeSort($x, $y)
     global $descending;
 
     if ($x['is_dir'] !== $y['is_dir']) {
-        return $y['is_dir'];
+        return $y['is_dir'] <=> $x['is_dir'];
     } else {
         return ($descending)
-            ? $x['size'] < $y['size']
-            : $x['size'] >= $y['size'];
+            ? $y['size'] <=> $x['size']
+            : $x['size'] <=> $y['size'];
     }
 }
 
@@ -729,26 +759,26 @@ function extensionSort($x, $y)
     global $descending;
 
     if ($x['is_dir'] !== $y['is_dir']) {
-        return $y['is_dir'];
+        return $y['is_dir'] <=> $x['is_dir'];
     } else {
         return ($descending)
-            ? $x['extension'] < $y['extension']
-            : $x['extension'] >= $y['extension'];
+            ? $y['extension'] <=> $x['extension']
+            : $x['extension'] <=> $y['extension'];
     }
 }
 
 switch ($sort_by) {
     case 'date':
-        @usort($sorted, 'dateSort');
+        usort($sorted, 'dateSort');
         break;
     case 'size':
-        @usort($sorted, 'sizeSort');
+        usort($sorted, 'sizeSort');
         break;
     case 'extension':
-        @usort($sorted, 'extensionSort');
+        usort($sorted, 'extensionSort');
         break;
     default:
-	@usort($sorted, 'filenameSort');
+	usort($sorted, 'filenameSort');
         break;
 }
 
@@ -773,13 +803,13 @@ $files = $sorted;
             <div class="row-fluid">
             <div class="span4 half">
                 <?php if($config['upload_files']){ ?>
-                <button class="tip btn upload-btn" title="<?php echo  trans('Upload_file');?>"><img class="svg-icon" src="svg/icon-upload.svg" alt=""></button>
+                <button class="tip btn upload-btn" title="<?php echo  trans('Upload_file');?>"><img class="svg-icon" src="svg/icon-upload.svg" alt=""> <?php echo trans('Upload_file');?></button>
                 <?php } ?>
                 <?php if($config['create_text_files']){ ?>
-                <button class="tip btn create-file-btn" title="<?php echo  trans('New_File');?>"><img class="svg-icon" src="svg/icon-plus.svg" alt=""><img class="svg-icon" src="svg/icon-file.svg" alt=""></button>
+                <button class="tip btn create-file-btn" title="<?php echo  trans('New_File');?>"><img class="svg-icon" src="svg/icon-plus.svg" alt=""><img class="svg-icon" src="svg/icon-file.svg" alt=""> <?php echo trans('New_File');?></button>
                 <?php } ?>
                 <?php if($config['create_folders']){ ?>
-                <button class="tip btn new-folder" title="<?php echo  trans('New_Folder')?>"><img class="svg-icon" src="svg/icon-plus.svg" alt=""><img class="svg-icon" src="svg/icon-folder.svg" alt=""></button>
+                <button class="tip btn new-folder" title="<?php echo  trans('New_Folder')?>"><img class="svg-icon" src="svg/icon-plus.svg" alt=""><img class="svg-icon" src="svg/icon-folder.svg" alt=""> <?php echo trans('New_Folder');?></button>
                 <?php } ?>
                 <?php if($config['copy_cut_files'] || $config['copy_cut_dirs']){ ?>
                 <button class="tip btn paste-here-btn" title="<?php echo trans('Paste_Here');?>"><img class="svg-icon" src="svg/icon-paste.svg" alt=""></button>
@@ -837,7 +867,7 @@ $files = $sorted;
 <?php endif; ?>
                 <button type="button" id="dark-mode-toggle" class="btn pull-right tip" title="Dark / Light mode" style="margin-left:4px; margin-right:4px">
                     <img id="dm-icon-moon" class="svg-icon" src="svg/icon-moon.svg" alt="" <?php if ($dark_mode_active): ?>style="display:none"<?php endif; ?>>
-                    <img id="dm-icon-sun" class="svg-icon" src="svg/icon-sun.svg" alt="" <?php if (!$dark_mode_active): ?>style="display:none"<?php endif; ?>>
+                    <img id="dm-icon-sun" class="svg-icon" src="svg/icon-light.svg" alt="" <?php if (!$dark_mode_active): ?>style="display:none"<?php endif; ?>>
                 </button>
             </div>
             </div>
@@ -902,7 +932,7 @@ $files = $sorted;
 	<!-- breadcrumb div end -->
 	<div class="row-fluid ff-container">
 	<div class="span12">
-		<?php if( @opendir($config['current_path'].$rfm_subfolder.$subdir)===FALSE ){ ?>
+		<?php if( !is_dir($config['current_path'].$rfm_subfolder.$subdir) || opendir($config['current_path'].$rfm_subfolder.$subdir)===FALSE ){ ?>
 		<br/>
 		<div class="alert alert-error">There is an error! The upload folder there isn't. Check your config.php file. </div>
 		<?php }else{ ?>
@@ -968,13 +998,13 @@ $files = $sorted;
                 <a class="folder-link" href="dialog.php?<?php echo $get_params.rawurlencode($src)."&".($callback?'callback='.$callback."&":'').uniqid() ?>">
                     <div class="img-precontainer">
                             <div class="img-container directory"><span></span>
-                            <img class="directory-img" data-src="img/<?php echo $config['icon_theme'];?>/folder<?php if($file==".."){ echo "_back"; }?>.png" />
+                            <img class="directory-img" data-src="svg/folder<?php if($file==".."){ echo "_back"; }?>.svg" />
                             </div>
                     </div>
                     <div class="img-precontainer-mini directory">
                             <div class="img-container-mini">
                             <span></span>
-                            <img class="directory-img" data-src="img/<?php echo $config['icon_theme'];?>/folder<?php if($file==".."){ echo "_back"; }?>.png" />
+                            <img class="directory-img" data-src="svg/folder<?php if($file==".."){ echo "_back"; }?>.svg" />
                             </div>
                     </div>
             <?php if($file==".."){ ?>
@@ -1024,7 +1054,7 @@ $files = $sorted;
                         continue 2;
                     }
                 }
-                $filename=substr($file, 0, '-' . (strlen($file_array['extension']) + 1));
+                $filename=substr($file, 0, -(strlen($file_array['extension']) + 1));
                 if(strlen($file_array['extension'])===0){
                     $filename = $file;
                 }
@@ -1044,7 +1074,7 @@ $files = $sorted;
                         $file_path1=($config['current_path'].$rfm_subfolder.$subdir.$file1);
                     }
 
-                    $filename=substr($file1, 0, '-' . (strlen($file_array['extension']) + 1));
+                    $filename=substr($file1, 0, -(strlen($file_array['extension']) + 1));
                     if(strlen($file_array['extension'])===0){
                         $filename = $file1;
                     }
@@ -1074,7 +1104,9 @@ $files = $sorted;
                             }
                         }
                         //check if is smaller than thumb
-                        list($img_width, $img_height, $img_type, $attr)=@getimagesize($file_path);
+                        $img_size_info = is_file($file_path) ? (getimagesize($file_path) ?: [0, 0]) : [0, 0];
+                        $img_width = $img_size_info[0] ?? 0;
+                        $img_height = $img_size_info[1] ?? 0;
                         if($img_width<122 && $img_height<91){
                             $src_thumb=$file_path;
                             $show_original=true;
@@ -1171,6 +1203,7 @@ $files = $sorted;
                 <div class='file-extension'><?php echo $file_array['extension'];?></div>
                 <figcaption>
                     <form action="force_download.php" method="post" class="download-form" id="form<?php echo $nu;?>">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>" />
                     <input type="hidden" name="path" value="<?php echo $rfm_subfolder.$subdir?>"/>
                     <input type="hidden" class="name_download" name="name" value="<?php echo $file?>"/>
 
@@ -1228,7 +1261,7 @@ $files = $sorted;
     <!-- loading div start -->
     <div id="loading_container" style="display:none;">
         <div id="loading" style="background-color:#000; position:fixed; width:100%; height:100%; top:0px; left:0px;z-index:100000"></div>
-        <img id="loading_animation" src="img/storing_animation.gif" alt="loading" style="z-index:10001; margin-left:-32px; margin-top:-32px; position:fixed; left:50%; top:50%">
+        <img id="loading_animation" src="img/storing_animation.svg" alt="loading" style="z-index:100001; width:64px; height:64px; margin-left:-32px; margin-top:-32px; position:fixed; left:50%; top:50%">
     </div>
     <!-- loading div end -->
 

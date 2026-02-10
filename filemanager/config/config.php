@@ -2,6 +2,8 @@
 $version = "9.16.0";
 if (session_id() == '') session_start();
 
+//  <--- ADD YOUR OWN SECURITY CHECK HERE
+
 error_reporting(E_ERROR | E_PARSE);
 
 mb_internal_encoding('UTF-8');
@@ -67,7 +69,7 @@ $config = array(
 	| without final / (DON'T TOUCH)
 	|
 	*/
-	'base_url' => ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on") ? "https" : "http"). "://". @$_SERVER['HTTP_HOST'],
+	'base_url' => ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === "on") ? "https" : "http"). "://". ($_SERVER['HTTP_HOST'] ?? 'localhost'),
 	/*
 	|--------------------------------------------------------------------------
 	| path from base_url to base of upload folder
@@ -174,8 +176,8 @@ $config = array(
 	|--------------------------------------------------------------------------
 	|
 	*/
-	'filePermission' => 0777,
-	'folderPermission' => 0777,
+	'filePermission' => 0644,
+	'folderPermission' => 0755,
 
 
 	/*
@@ -298,24 +300,24 @@ $config = array(
 	'rename_files'                            => true,
 	'rename_folders'                          => true,
 	'duplicate_files'                         => true,
-	'extract_files'                           => true,
+	'extract_files'                           => false,
 	'copy_cut_files'                          => true, // for copy/cut files
 	'copy_cut_dirs'                           => true, // for copy/cut directories
-	'chmod_files'                             => true, // change file permissions
-	'chmod_dirs'                              => true, // change folder permissions
-	'preview_text_files'                      => true, // eg.: txt, log etc.
-	'edit_text_files'                         => true, // eg.: txt, log etc.
-	'create_text_files'                       => true, // only create files with exts. defined in $config['editable_text_file_exts']
+	'chmod_files'                             => false, // change file permissions
+	'chmod_dirs'                              => false, // change folder permissions
+	'preview_text_files'                      => false, // eg.: txt, log etc.
+	'edit_text_files'                         => false, // eg.: txt, log etc.
+	'create_text_files'                       => false, // only create files with exts. defined in $config['editable_text_file_exts']
 	'download_files'			  => true, // allow download files or just preview
 
 	// you can preview these type of files if $preview_text_files is true
-	'previewable_text_file_exts'              => array( "bsh", "c","css", "cc", "cpp", "cs", "csh", "cyc", "cv", "htm", "html", "java", "js", "m", "mxml", "perl", "pl", "pm", "py", "rb", "sh", "xhtml", "xml","xsl",'txt', 'log','' ),
+	'previewable_text_file_exts'              => array( 'txt', 'log', 'xml', 'css' ),
 
 	// you can edit these type of files if $edit_text_files is true (only text based files)
 	// you can create these type of files if $config['create_text_files'] is true (only text based files)
 	// if you want you can add html,css etc.
 	// but for security reasons it's NOT RECOMMENDED!
-	'editable_text_file_exts'                 => array( 'txt', 'log', 'xml', 'html', 'css', 'htm', 'js','' ),
+	'editable_text_file_exts'                 => array( 'txt', 'log' ),
 
 	'jplayer_exts'                            => array("mp4","flv","webmv","webma","webm","m4a","m4v","ogv","oga","mp3","midi","mid","ogg","wav"),
 
@@ -337,17 +339,27 @@ $config = array(
 	//Allowed extensions (lowercase insert)
 	//**********************
 	'ext_img'                                 => array( 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'ico', 'webp' ), //Images
-	'ext_file'                                => array( 'doc', 'docx', 'rtf', 'pdf', 'xls', 'xlsx', 'txt', 'csv', 'html', 'xhtml', 'psd', 'sql', 'log', 'fla', 'xml', 'ade', 'adp', 'mdb', 'accdb', 'ppt', 'pptx', 'odt', 'ots', 'ott', 'odb', 'odg', 'otp', 'otg', 'odf', 'ods', 'odp', 'css', 'ai', 'kmz','dwg', 'dxf', 'hpgl', 'plt', 'spl', 'step', 'stp', 'iges', 'igs', 'sat', 'cgm', 'tiff',''), //Files
+	'ext_file'                                => array( 'doc', 'docx', 'xls', 'xlsx', 'pdf' ), //Files
 	'ext_video'                               => array( 'mov', 'mpeg', 'm4v', 'mp4', 'avi', 'mpg', 'wma', "flv", "webm" ), //Video
 	'ext_music'                               => array( 'mp3', 'mpga', 'm4a', 'ac3', 'aiff', 'mid', 'ogg', 'wav' ), //Audio
-	'ext_misc'                                => array( 'zip', 'rar', 'gz', 'tar', 'iso', 'dmg' ), //Archives
+	'ext_misc'                                => array( 'zip', 'rar', 'gz', 'tar' ), //Archives
 
 
 	//*********************
 	//  If you insert an extensions blacklist array the filemanager don't check any extensions but simply block the extensions in the list
 	//  otherwise check Allowed extensions configuration
 	//*********************
-	'ext_blacklist'							  => false,//['exe','bat','jpg'],
+	'ext_blacklist'							  => array(
+		'php', 'php3', 'php4', 'php5', 'php7', 'php8', 'phtml', 'phar', 'phps',
+		'cgi', 'pl', 'py', 'pyc', 'pyo',
+		'sh', 'bash', 'zsh', 'ksh', 'csh',
+		'exe', 'com', 'bat', 'cmd', 'vbs', 'vbe', 'js', 'jse', 'wsf', 'wsh', 'ps1', 'psm1',
+		'msi', 'msp', 'mst', 'scr', 'pif', 'dll', 'sys', 'drv',
+		'asp', 'aspx', 'ashx', 'asmx', 'cshtml', 'vbhtml',
+		'jsp', 'jspx', 'cfm', 'cfc', 'shtml',
+		'htaccess', 'htpasswd', 'ini', 'config', 'env',
+		'rb', 'erb', 'go', 'rs', 'java', 'class', 'war', 'jar',
+	),
 
 
 	//Empty filename permits like .htaccess, .env, ...
@@ -379,7 +391,7 @@ $config = array(
 	/*******************
 	* URL upload
 	*******************/
-	'url_upload'                             => true,
+	'url_upload'                             => false,
 
 
 	//************************************
@@ -438,7 +450,7 @@ $config = array(
 	* TUI Image Editor config
 	*******************/
 	'tui_active'                           => true,
-	'tui_position'                         => 'left',
+	'tui_position'                         => 'bottom',
 
 	/******************
 	* Dark mode
@@ -452,7 +464,7 @@ $config = array(
 	* .tox-dialog__header { display: none !important; }
 	* .tox-dialog__body { padding-top: 5px !important; }
 	*******************/
-	'remove_header'                        => false,
+	'remove_header'                        => true,
 
 );
 

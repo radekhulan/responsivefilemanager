@@ -54,6 +54,7 @@ figcaption { background: #333 !important; color: #ccc !important; }
 .context-menu-item.icon-copy::before { background-image: url(../svg/icon-copy.svg); }
 .context-menu-item.icon-clipboard-apply::before { background-image: url(../svg/icon-paste.svg); }
 .context-menu-item.icon-duplicate::before { background-image: url(../svg/icon-duplicate.svg); }
+.context-menu-item.icon-trash::before { background-image: url(../svg/icon-trash.svg); }
 .context-menu-item.icon-url::before { background-image: url(../svg/icon-url.svg); }
 .context-menu-item.icon-extract::before { background-image: url(../svg/icon-zip.svg); }
 .context-menu-item.icon-key::before { background-image: url(../svg/icon-key.svg); }
@@ -124,6 +125,7 @@ ul.sorting.dropdown-menu > li > a.descending {
 
 /* SVG icons - dark mode overrides */
 .svg-icon { filter: brightness(1.5); }
+.filters .btn-inverse .svg-icon { filter: brightness(2); }
 figcaption a:hover .svg-icon { filter: brightness(2); }
 .close-dialog-btn.btn-danger { background: #444 !important; border-color: #555 !important; }
 .close-dialog-btn.btn-danger:hover { background: #555 !important; }

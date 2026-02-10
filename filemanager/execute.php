@@ -1,14 +1,22 @@
 <?php
-$config = include 'config/config.php';
+header('X-Content-Type-Options: nosniff');
+
+$config = require 'config/config.php';
 
 include 'include/utils.php';
 
-if ($_SESSION['RF']["verify"] != "RESPONSIVEfilemanager") {
+if (($_SESSION['RF']["verify"] ?? '') !== "RESPONSIVEfilemanager") {
     response(trans('forbidden') . AddErrorLocation())->send();
     exit;
 }
 
-if (!checkRelativePath($_POST['path'])) {
+// CSRF protection
+if (!verifyCsrfToken()) {
+    response(trans('forbidden') . ' (CSRF)' . AddErrorLocation(), 403)->send();
+    exit;
+}
+
+if (!checkRelativePath($_POST['path'] ?? '')) {
     response(trans('wrong path') . AddErrorLocation())->send();
     exit;
 }
@@ -52,11 +60,22 @@ function returnPaths($_path, $_name, $config)
     $name = null;
     if ($_name) {
         $name = fix_filename($_name, $config);
-        if (strpos($name, '../') !== false || strpos($name, '..\\') !== false) {
+        if (strpos((string)$name, '../') !== false || strpos((string)$name, '..\\') !== false) {
             response(trans('wrong name') . AddErrorLocation())->send();
             exit;
         }
     }
+
+    // Validate paths are within allowed directories
+    if (!validatePathSecurity($path, $config)) {
+        response(trans('wrong path') . AddErrorLocation(), 403)->send();
+        exit;
+    }
+    if (!validatePathSecurity($path_thumb, $config)) {
+        response(trans('wrong path') . AddErrorLocation(), 403)->send();
+        exit;
+    }
+
     return array($path, $path_thumb, $name);
 }
 
@@ -87,9 +106,9 @@ if(isset($_POST['paths'])){
 }
 
 $info = pathinfo($path);
-if (isset($info['extension']) && !(isset($_GET['action']) && $_GET['action'] == 'delete_folder') &&
+if (isset($info['extension']) && !(isset($_GET['action']) && $_GET['action'] === 'delete_folder') &&
     !check_extension($info['extension'], $config)
-    && $_GET['action'] != 'create_file') {
+    && ($_GET['action'] ?? '') !== 'create_file') {
     response(trans('wrong extension') . AddErrorLocation())->send();
     exit;
 }
@@ -206,7 +225,7 @@ if (isset($_GET['action'])) {
                 exit;
             }
 
-            $content = $_POST['new_content'];
+            $content = $_POST['new_content'] ?? '';
 
             if (!checkresultingsize(strlen($content))) {
                 response(sprintf(trans('max_size_reached'), $config['MaxSizeTotal']) . AddErrorLocation())->send();
@@ -218,7 +237,7 @@ if (isset($_GET['action'])) {
                 exit;
             }
 
-            if (@file_put_contents($path . $name, $content) === false) {
+            if (file_put_contents($path . $name, $content) === false) {
                 response(trans('File_Save_Error') . AddErrorLocation())->send();
                 exit;
             } else {
@@ -370,10 +389,10 @@ if (isset($_GET['action'])) {
             break;
 
         case 'chmod':
-            $mode = $_POST['new_mode'];
-            $rec_option = $_POST['is_recursive'];
+            $mode = $_POST['new_mode'] ?? '';
+            $rec_option = $_POST['is_recursive'] ?? 'none';
             $valid_options = array('none', 'files', 'folders', 'both');
-            $chmod_perm = ($_POST['folder'] ? $config['chmod_dirs'] : $config['chmod_files']);
+            $chmod_perm = (($_POST['folder'] ?? false) ? $config['chmod_dirs'] : $config['chmod_files']);
 
             // check perm
             if ($chmod_perm === false) {
@@ -403,7 +422,7 @@ if (isset($_GET['action'])) {
             break;
 
         case 'save_text_file':
-            $content = $_POST['new_content'];
+            $content = $_POST['new_content'] ?? '';
 
             // no file
             if (!file_exists($path)) {
@@ -421,7 +440,7 @@ if (isset($_GET['action'])) {
                 response(sprintf(trans('max_size_reached'), $config['MaxSizeTotal']) . AddErrorLocation())->send();
                 exit;
             }
-            if (@file_put_contents($path, $content) === false) {
+            if (file_put_contents($path, $content) === false) {
                 response(trans('File_Save_Error') . AddErrorLocation())->send();
                 exit;
             } else {

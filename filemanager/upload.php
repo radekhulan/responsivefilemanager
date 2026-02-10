@@ -1,4 +1,5 @@
 <?php
+header('X-Content-Type-Options: nosniff');
 
 // Pokud není co nahrávat, vrátit prázdnou odpověď
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || (empty($_FILES) && empty($_POST['url']) && !isset($_POST['submit']))) {
@@ -9,13 +10,19 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' || (empty($_FILES) && empty($_POST['ur
 
 try {
     if (!isset($config)) {
-        $config = include 'config/config.php';
+        $config = require 'config/config.php';
     }
 
     include 'include/utils.php';
 
-    if ($_SESSION['RF']["verify"] != "RESPONSIVEfilemanager") {
+    if (($_SESSION['RF']["verify"] ?? '') !== "RESPONSIVEfilemanager") {
         response(trans('forbidden') . AddErrorLocation(), 403)->send();
+        exit;
+    }
+
+    // CSRF protection
+    if (!verifyCsrfToken()) {
+        response(trans('forbidden') . ' (CSRF)' . AddErrorLocation(), 403)->send();
         exit;
     }
 
@@ -36,6 +43,16 @@ try {
 
     if (!checkRelativePath($fldr)) {
         response(trans('wrong path') . AddErrorLocation())->send();
+        exit;
+    }
+
+    // Validate upload paths are within allowed directories
+    if (!validatePathSecurity($storeFolder, $config)) {
+        response(trans('wrong path') . AddErrorLocation(), 403)->send();
+        exit;
+    }
+    if (!validatePathSecurity($storeFolderThumb, $config)) {
+        response(trans('wrong path') . AddErrorLocation(), 403)->send();
         exit;
     }
 
@@ -142,9 +159,8 @@ try {
     }
     $_FILES['files']['name'][0] = fix_filename($filename, $config);
 
-    if(!$_FILES['files']['type'][0]){
+    if(empty($_FILES['files']['type'][0])){
         $_FILES['files']['type'][0] = $mime_type;
-
     }
     // LowerCase
     if ($config['lower_case']) {
@@ -190,7 +206,7 @@ try {
 } catch (Exception $e) {
     $return = array();
 
-    if ($_FILES['files']) {
+    if (!empty($_FILES['files'])) {
         foreach ($_FILES['files']['name'] as $i => $name) {
             $return[] = array(
                 'name' => $name,

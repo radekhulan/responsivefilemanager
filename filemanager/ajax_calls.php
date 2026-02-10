@@ -1,10 +1,12 @@
 <?php
 
-$config = include 'config/config.php';
+header('X-Content-Type-Options: nosniff');
+
+$config = require 'config/config.php';
 
 require_once 'include/utils.php';
 
-if ($_SESSION['RF']["verify"] != "RESPONSIVEfilemanager") {
+if (($_SESSION['RF']["verify"] ?? '') !== "RESPONSIVEfilemanager") {
     response(trans('forbidden').AddErrorLocation())->send();
     exit;
 }
@@ -35,6 +37,15 @@ if(isset($_POST['path']) && !checkRelativePath($_POST['path'])) {
     exit;
 }
 
+
+// CSRF protection for state-changing actions
+$csrf_required_actions = array('save_img', 'copy_cut', 'change_lang', 'chmod');
+if (isset($_GET['action']) && in_array($_GET['action'], $csrf_required_actions)) {
+    if (!verifyCsrfToken()) {
+        response(trans('forbidden') . ' (CSRF)' . AddErrorLocation(), 403)->send();
+        exit;
+    }
+}
 
 if (isset($_GET['action'])) {
     switch ($_GET['action']) {
@@ -77,8 +88,8 @@ if (isset($_GET['action'])) {
 			}
 			break;
 		case 'save_img':
-			$info = pathinfo($_POST['name']);
-            $image_data = $_POST['url'];
+			$info = pathinfo($_POST['name'] ?? '');
+            $image_data = $_POST['url'] ?? '';
 
             if (preg_match('/^data:image\/(\w+);base64,/', $image_data, $type)) {
                 $image_data = substr($image_data, strpos($image_data, ',') + 1);
@@ -104,99 +115,41 @@ if (isset($_GET['action'])) {
                 response(sprintf(trans('max_size_reached'), $config['MaxSizeTotal']).AddErrorLocation())->send();
                 exit;
             }
-            file_put_contents($config['current_path'] . $_POST['path'] . $_POST['name'], $image_data);
-            create_img($config['current_path'] . $_POST['path'] . $_POST['name'], $config['thumbs_base_path'].$_POST['path'].$_POST['name'], 122, 91);
+
+            // Validate path before writing
+            $save_path = $config['current_path'] . ($_POST['path'] ?? '') . ($_POST['name'] ?? '');
+            if (!validatePathSecurity($save_path, $config)) {
+                response(trans('wrong path') . AddErrorLocation(), 403)->send();
+                exit;
+            }
+
+            file_put_contents($save_path, $image_data);
+            create_img($save_path, $config['thumbs_base_path'].($_POST['path'] ?? '').($_POST['name'] ?? ''), 122, 91);
             // TODO something with this function cause its blowing my mind
             new_thumbnails_creation(
-                $config['current_path'].$_POST['path'],
-                $config['current_path'].$_POST['path'].$_POST['name'],
-                $_POST['name'],
+                $config['current_path'].($_POST['path'] ?? ''),
+                $save_path,
+                $_POST['name'] ?? '',
                 $config['current_path'],
                 $config
             );
             break;
 
-        case 'extract':
-            if (!$config['extract_files']) {
-                response(trans('wrong action').AddErrorLocation())->send();
-            }
-            $path = $config['current_path'] . $_POST['path'];
-            $base_folder = $config['current_path'] . fix_dirname($_POST['path']) . "/";
-
-            $info = pathinfo($path);
-
-            $info = pathinfo($path);
-
-            switch ($info['extension']) {
-                case "zip":
-                    $zip = new ZipArchive;
-                    if ($zip->open($path) === true) {
-                        //get total size
-                        $sizeTotalFinal = 0;
-                        for ($i = 0; $i < $zip->numFiles; $i++) {
-                            $aStat = $zip->statIndex($i);
-                            $sizeTotalFinal += $aStat['size'];
-                        }
-                        if (!checkresultingsize($sizeTotalFinal)) {
-                            response(sprintf(trans('max_size_reached'), $config['MaxSizeTotal']).AddErrorLocation())->send();
-                            exit;
-                        }
-
-                        //make all the folders and unzip into the folders
-                        for ($i = 0; $i < $zip->numFiles; $i++) {
-                            $FullFileName = $zip->statIndex($i);
-
-                            if (checkRelativePath($FullFileName['name'])) {
-                                if (substr($FullFileName['name'], -1, 1) == "/") {
-                                    create_folder($base_folder . $FullFileName['name']);
-                                }
-
-                                if (! (substr($FullFileName['name'], -1, 1) == "/")) {
-                                    $fileinfo = pathinfo($FullFileName['name']);
-                                    if (in_array(strtolower($fileinfo['extension']), $config['ext'])) {
-                                        copy('zip://' . $path . '#' . $FullFileName['name'], $base_folder . $FullFileName['name']);
-                                    }
-                                }
-                            }
-                        }
-                        $zip->close();
-                    } else {
-                        response(trans('Zip_No_Extract').AddErrorLocation())->send();
-                        exit;
-                    }
-
-                    break;
-
-                case "gz":
-                    // No resulting size pre-control available
-                    $p = new PharData($path);
-                    $p->decompress(); // creates files.tar
-                    break;
-
-                case "tar":
-                    // No resulting size pre-control available
-                    // unarchive from the tar
-                    $phar = new PharData($path);
-                    $phar->decompressFiles();
-                    $files = array();
-                    check_files_extensions_on_phar($phar, $files, '', $config);
-                    $phar->extractTo($base_folder, $files, true);
-                    break;
-
-                default:
-                    response(trans('Zip_Invalid').AddErrorLocation())->send();
-                    exit;
-            }
-
-			break;
 		case 'media_preview':
-			if(isset($_GET['file'])){
-				$_GET['file'] = sanitize($_GET['file']);
+			if(!isset($_GET['file'])){
+				response(trans('wrong path').AddErrorLocation())->send();
+				exit;
 			}
-			if(isset($_GET['title'])){
-				$_GET['title'] = sanitize($_GET['title']);
-			}
+			$_GET['file'] = sanitize($_GET['file']);
+			$_GET['title'] = isset($_GET['title']) ? sanitize($_GET['title']) : '';
 			$preview_file = $config['current_path'] . $_GET["file"];
+
+			// Validate path is within allowed directories
+			if (!validatePathSecurity($preview_file, $config)) {
+				response(trans('wrong path') . AddErrorLocation(), 403)->send();
+				exit;
+			}
+
 			$info = pathinfo($preview_file);
 			ob_start();
 			?>
@@ -247,7 +200,7 @@ if (isset($_GET['action'])) {
 				</div>
 				</div>
 			</div>
-			<?php if(in_array(strtolower($info['extension']), $config['ext_music'])): ?>
+			<?php if(in_array(strtolower($info['extension'] ?? ''), $config['ext_music'])): ?>
 
             <script type="text/javascript">
                 $(document).ready(function () {
@@ -255,7 +208,7 @@ if (isset($_GET['action'])) {
                     $("#jquery_jplayer_1").jPlayer({
                         ready: function () {
                             $(this).jPlayer("setMedia", {
-                                title: "<?php $_GET['title']; ?>",
+                                title: "<?php echo htmlspecialchars($_GET['title'] ?? '', ENT_QUOTES, 'UTF-8'); ?>",
                                 mp3: "<?php echo $preview_file; ?>",
                                 m4a: "<?php echo $preview_file; ?>",
                                 oga: "<?php echo $preview_file; ?>",
@@ -271,7 +224,7 @@ if (isset($_GET['action'])) {
                 });
             </script>
 
-            <?php elseif (in_array(strtolower($info['extension']), $config['ext_video'])):	?>
+            <?php elseif (in_array(strtolower($info['extension'] ?? ''), $config['ext_video'])):	?>
 
             <script type="text/javascript">
                 $(document).ready(function () {
@@ -279,7 +232,7 @@ if (isset($_GET['action'])) {
                     $("#jquery_jplayer_1").jPlayer({
                         ready: function () {
                             $(this).jPlayer("setMedia", {
-                                title: "<?php $_GET['title']; ?>",
+                                title: "<?php echo htmlspecialchars($_GET['title'] ?? '', ENT_QUOTES, 'UTF-8'); ?>",
                                 m4v: "<?php echo $preview_file; ?>",
                                 ogv: "<?php echo $preview_file; ?>",
                                 flv: "<?php echo $preview_file; ?>"
@@ -304,18 +257,24 @@ if (isset($_GET['action'])) {
 
             break;
         case 'copy_cut':
-            if ($_POST['sub_action'] != 'copy' && $_POST['sub_action'] != 'cut') {
+            if (($_POST['sub_action'] ?? '') !== 'copy' && ($_POST['sub_action'] ?? '') !== 'cut') {
                 response(trans('wrong sub-action').AddErrorLocation())->send();
                 exit;
             }
 
-            if (trim($_POST['path']) == '') {
+            if (trim($_POST['path'] ?? '') === '') {
                 response(trans('no path').AddErrorLocation())->send();
                 exit;
             }
 
-            $msg_sub_action = ($_POST['sub_action'] == 'copy' ? trans('Copy') : trans('Cut'));
-            $path = $config['current_path'] . $_POST['path'];
+            $msg_sub_action = (($_POST['sub_action'] ?? '') === 'copy' ? trans('Copy') : trans('Cut'));
+            $path = $config['current_path'] . ($_POST['path'] ?? '');
+
+            // Validate path is within allowed directories
+            if (!validatePathSecurity($path, $config)) {
+                response(trans('wrong path') . AddErrorLocation(), 403)->send();
+                exit;
+            }
 
             if (is_dir($path)) {
                 // can't copy/cut dirs
@@ -353,15 +312,15 @@ if (isset($_GET['action'])) {
                 }
             }
 
-            $_SESSION['RF']['clipboard']['path'] = $_POST['path'];
-            $_SESSION['RF']['clipboard_action'] = $_POST['sub_action'];
+            $_SESSION['RF']['clipboard']['path'] = $_POST['path'] ?? '';
+            $_SESSION['RF']['clipboard_action'] = $_POST['sub_action'] ?? '';
             break;
         case 'clear_clipboard':
             $_SESSION['RF']['clipboard'] = null;
             $_SESSION['RF']['clipboard_action'] = null;
             break;
         case 'chmod':
-            $path = $config['current_path'] . $_POST['path'];
+            $path = $config['current_path'] . ($_POST['path'] ?? '');
             if (
                 (is_dir($path) && $config['chmod_dirs'] === false)
                 || (is_file($path) && $config['chmod_files'] === false)
@@ -462,7 +421,7 @@ if (isset($_GET['action'])) {
                 exit;
             }
 
-            $curr = $_SESSION['RF']['language'];
+            $curr = $_SESSION['RF']['language'] ?? '';
 
             $ret = '<select id="new_lang_select">';
             foreach ($languages as $code => $name) {
@@ -475,7 +434,7 @@ if (isset($_GET['action'])) {
 
             break;
         case 'change_lang':
-            $choosen_lang = (!empty($_POST['choosen_lang']))? $_POST['choosen_lang']:"en_EN";
+            $choosen_lang = $_POST['choosen_lang'] ?? 'en_EN';
 
             if (array_key_exists($choosen_lang, $languages)) {
                 if (! file_exists('lang/' . $choosen_lang . '.php')) {
@@ -488,15 +447,21 @@ if (isset($_GET['action'])) {
 
             break;
         case 'get_file': // preview or edit
-            $sub_action = $_GET['sub_action'];
-            $preview_mode = $_GET["preview_mode"];
+            $sub_action = $_GET['sub_action'] ?? '';
+            $preview_mode = $_GET["preview_mode"] ?? '';
 
-            if ($sub_action != 'preview' && $sub_action != 'edit') {
+            if ($sub_action !== 'preview' && $sub_action !== 'edit') {
                 response(trans('wrong action').AddErrorLocation())->send();
                 exit;
             }
 
-            $selected_file = ($sub_action == 'preview' ? $config['current_path'] . $_GET['file'] : $config['current_path'] . $_POST['path']);
+            $selected_file = ($sub_action === 'preview' ? $config['current_path'] . ($_GET['file'] ?? '') : $config['current_path'] . ($_POST['path'] ?? ''));
+
+            // Validate path
+            if (!validatePathSecurity($selected_file, $config)) {
+                response(trans('wrong path') . AddErrorLocation(), 403)->send();
+                exit;
+            }
 
             if (! file_exists($selected_file)) {
                 response(trans('File_Not_Found').AddErrorLocation())->send();
@@ -505,10 +470,10 @@ if (isset($_GET['action'])) {
 
             $info = pathinfo($selected_file);
 
-            if ($preview_mode == 'text') {
-                $is_allowed = ($sub_action == 'preview' ? $config['preview_text_files'] : $config['edit_text_files']);
-                $allowed_file_exts = ($sub_action == 'preview' ? $config['previewable_text_file_exts'] : $config['editable_text_file_exts']);
-            } elseif ($preview_mode == 'google') {
+            if ($preview_mode === 'text') {
+                $is_allowed = ($sub_action === 'preview' ? $config['preview_text_files'] : $config['edit_text_files']);
+                $allowed_file_exts = ($sub_action === 'preview' ? $config['previewable_text_file_exts'] : $config['editable_text_file_exts']);
+            } elseif ($preview_mode === 'google') {
                 $is_allowed = $config['googledoc_enabled'];
                 $allowed_file_exts = $config['googledoc_file_exts'];
             }
@@ -525,11 +490,11 @@ if (isset($_GET['action'])) {
                 || $is_allowed === false
                 || (! is_readable($selected_file))
             ) {
-                response(sprintf(trans('File_Open_Edit_Not_Allowed'), ($sub_action == 'preview' ? strtolower(trans('Open')) : strtolower(trans('Edit')))).AddErrorLocation())->send();
+                response(sprintf(trans('File_Open_Edit_Not_Allowed'), ($sub_action === 'preview' ? strtolower(trans('Open')) : strtolower(trans('Edit')))).AddErrorLocation())->send();
                 exit;
             }
-            if ($sub_action == 'preview') {
-                if ($preview_mode == 'text') {
+            if ($sub_action === 'preview') {
+                if ($preview_mode === 'text') {
                     // get and sanities
                     $data = file_get_contents($selected_file);
                     $data = htmlspecialchars(htmlspecialchars_decode($data));
@@ -537,8 +502,8 @@ if (isset($_GET['action'])) {
 
                     $ret .= '<script src="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/run_prettify.min.js?autoload=true&skin=sunburst"></script>';
                     $ret .= '<pre class="prettyprint linenums lang-'.$info['extension'].'">'.$data.'</pre>';
-                } elseif ($preview_mode == 'google') {
-                    $url_file = $config['base_url'] . $config['upload_dir'] . str_replace($config['current_path'], '', $_GET["file"]);
+                } elseif ($preview_mode === 'google') {
+                    $url_file = $config['base_url'] . $config['upload_dir'] . str_replace($config['current_path'], '', $_GET["file"] ?? '');
 
 					$googledoc_url = urlencode($url_file);
 					$ret = "<iframe src=\"https://docs.google.com/viewer?url=" . $url_file . "&embedded=true\" class=\"google-iframe\"></iframe>";

@@ -1,6 +1,6 @@
 <?php
 
-if (!isset($_SESSION['RF']) || $_SESSION['RF']["verify"] != "RESPONSIVEfilemanager")
+if (!isset($_SESSION['RF']) || ($_SESSION['RF']["verify"] ?? '') !== "RESPONSIVEfilemanager")
 {
 	die('forbiden');
 }
@@ -44,8 +44,8 @@ if ( ! function_exists('trans'))
 
 	// language
 	if ( ! isset($_SESSION['RF']['language'])
-		|| file_exists('lang/' . basename($_SESSION['RF']['language']) . '.php') === false
-		|| ! is_readable('lang/' . basename($_SESSION['RF']['language']) . '.php')
+		|| file_exists('lang/' . basename((string)($_SESSION['RF']['language'])) . '.php') === false
+		|| ! is_readable('lang/' . basename((string)($_SESSION['RF']['language'])) . '.php')
 	)
 	{
 		$lang = $config['default_language'];
@@ -53,7 +53,7 @@ if ( ! function_exists('trans'))
 		if (isset($_GET['lang']) && $_GET['lang'] != 'undefined' && $_GET['lang'] != '')
 		{
 			$lang = fix_get_params($_GET['lang']);
-			$lang = trim($lang);
+			$lang = trim((string)$lang);
 		}
 
 		if ($lang != $config['default_language'])
@@ -95,7 +95,75 @@ if ( ! function_exists('trans'))
 }
 
 
+/**
+ * Validate that a resolved path is within allowed directories (current_path or thumbs_base_path).
+ * Prevents path traversal attacks using realpath().
+ *
+ * @param  string  $path    Path to validate
+ * @param  array   $config  Config array with 'current_path' and 'thumbs_base_path'
+ * @return bool
+ */
+function validatePathSecurity($path, $config) {
+	$allowedMedia = realpath($config['current_path']);
+	$allowedTmp = realpath($config['thumbs_base_path']);
+
+	if (empty($path) || $allowedMedia === false || $allowedTmp === false) {
+		return false;
+	}
+
+	// Resolve the real path - handles symlinks and ../ etc.
+	$realPath = realpath($path);
+
+	// If path doesn't exist yet (e.g. new upload/create), check parent directory
+	if ($realPath === false) {
+		$parentDir = dirname($path);
+		$realParent = realpath($parentDir);
+		if ($realParent === false) {
+			return false;
+		}
+		$realPath = $realParent . DIRECTORY_SEPARATOR . basename($path);
+	}
+
+	// Normalize separators and ensure trailing separator
+	$realPath = rtrim(str_replace('/', DIRECTORY_SEPARATOR, $realPath), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+	$allowedMedia = $allowedMedia . DIRECTORY_SEPARATOR;
+	$allowedTmp = $allowedTmp . DIRECTORY_SEPARATOR;
+
+	// Case-insensitive comparison on Windows
+	if (DIRECTORY_SEPARATOR === '\\') {
+		$realPath = strtolower($realPath);
+		$allowedMedia = strtolower($allowedMedia);
+		$allowedTmp = strtolower($allowedTmp);
+	}
+
+	return (strpos($realPath, $allowedMedia) === 0 || strpos($realPath, $allowedTmp) === 0);
+}
+
+/**
+ * Generate CSRF token and store in session
+ *
+ * @return string
+ */
+function generateCsrfToken() {
+	if (empty($_SESSION['RF']['csrf_token'])) {
+		$_SESSION['RF']['csrf_token'] = bin2hex(random_bytes(32));
+	}
+	return $_SESSION['RF']['csrf_token'];
+}
+
+/**
+ * Verify CSRF token from POST data or X-CSRF-Token header
+ *
+ * @return bool
+ */
+function verifyCsrfToken() {
+	$token = $_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+	$sessionToken = $_SESSION['RF']['csrf_token'] ?? '';
+	return !empty($token) && !empty($sessionToken) && hash_equals($sessionToken, $token);
+}
+
 function checkRelativePathPartial($path){
+	$path = (string)$path;
 	if (strpos($path, '../') !== false
         || strpos($path, './') !== false
         || strpos($path, '/..') !== false
@@ -117,6 +185,7 @@ function checkRelativePathPartial($path){
 * @return boolean is it correct?
 */
 function checkRelativePath($path){
+	$path = (string)$path;
 	$path_correct = checkRelativePathPartial($path);
 	if($path_correct){
 		$path_decoded = rawurldecode($path);
@@ -179,7 +248,7 @@ function deleteFile($path,$path_thumb,$config){
 
 		$info=pathinfo($path);
 		if ($config['relative_image_creation']){
-			foreach($config['relative_path_from_current_pos'] as $k=>$path)
+			if (is_array($config['relative_path_from_current_pos'])) foreach($config['relative_path_from_current_pos'] as $k=>$path)
 			{
 				if ($path!="" && $path[strlen($path)-1]!="/") $path.="/";
 
@@ -192,7 +261,7 @@ function deleteFile($path,$path_thumb,$config){
 
 		if ($config['fixed_image_creation'])
 		{
-			foreach($config['fixed_path_from_filemanager'] as $k=>$path)
+			if (is_array($config['fixed_path_from_filemanager'])) foreach($config['fixed_path_from_filemanager'] as $k=>$path)
 			{
 				if ($path!="" && $path[strlen($path)-1] != "/") $path.="/";
 
@@ -341,6 +410,7 @@ function rename_folder($old_path, $name, $config = null)
 function create_img($imgfile, $imgthumb, $newwidth, $newheight = null, $option = "crop",$config = array())
 {
 	$result = false;
+	$imgfile = (string)$imgfile;
 	if(file_exists($imgfile) || strpos($imgfile,'http')===0){
 		if (strpos($imgfile,'http')===0 || image_check_memory_usage($imgfile, $newwidth, $newheight))
 		{
@@ -515,11 +585,11 @@ function create_folder($path = null, $path_thumbs = null, $config = null)
 function check_file_extension($extension,$config){
 	$check = false;
 	if (!$config['ext_blacklist']) {
-		if(in_array(mb_strtolower($extension), $config['ext'])){
+		if(in_array(mb_strtolower((string)$extension), $config['ext'])){
 			$check = true;
 		}
     } else {
-    	if(!in_array(mb_strtolower($extension), $config['ext_blacklist'])){
+    	if(!in_array(mb_strtolower((string)$extension), $config['ext_blacklist'])){
 			$check = true;
 		}
     }
@@ -542,7 +612,7 @@ function check_file_extension($extension,$config){
 */
 function check_files_extensions_on_phar($phar, &$files, $basepath, $config)
 {
-	if (is_array($phar)) foreach ($phar as $file)
+	if (is_array($phar) || $phar instanceof \Traversable) foreach ($phar as $file)
 	{
 		if ($file->isFile())
 		{
@@ -571,6 +641,7 @@ function check_files_extensions_on_phar($phar, &$files, $basepath, $config)
 */
 function fix_get_params($str)
 {
+	$str = (string)$str;
 	return strip_tags(preg_replace("/[^a-zA-Z0-9\.\[\]_| -]/", '', $str));
 }
 
@@ -603,7 +674,7 @@ function check_extension($extension,$config){
 */
 function sanitize($str)
 {
-	return strip_tags(htmlspecialchars($str));
+	return strip_tags(htmlspecialchars((string)$str));
 }
 
 /**
@@ -649,12 +720,12 @@ function fix_filename($str, $config, $is_folder = false)
 	// Empty or incorrectly transliterated filename.
 	// Here is a point: a good file UNKNOWN_LANGUAGE.jpg could become .jpg in previous code.
 	// So we add that default 'file' name to fix that issue.
-	if (!$config['empty_filename'] && strpos($str, '.') === 0 && $is_folder === false)
+	if (!$config['empty_filename'] && strpos((string)$str, '.') === 0 && $is_folder === false)
 	{
 		$str = 'file' . $str;
 	}
 
-	return trim($str);
+	return trim((string)$str);
 }
 
 /**
@@ -666,7 +737,7 @@ function fix_filename($str, $config, $is_folder = false)
 */
 function fix_dirname($str)
 {
-	return str_replace('~', ' ', dirname(str_replace(' ', '~', $str)));
+	return str_replace('~', ' ', dirname(str_replace(' ', '~', (string)$str)));
 }
 
 /**
@@ -678,6 +749,7 @@ function fix_dirname($str)
 */
 function fix_strtoupper($str)
 {
+	$str = (string)$str;
 	if (function_exists('mb_strtoupper'))
 	{
 		return mb_strtoupper($str);
@@ -697,6 +769,7 @@ function fix_strtoupper($str)
 */
 function fix_strtolower($str)
 {
+	$str = (string)$str;
 	if (function_exists('mb_strtoupper'))
 	{
 		return mb_strtolower($str);
@@ -760,9 +833,9 @@ function image_check_memory_usage($img, $max_breedte, $max_hoogte)
 	{
 		$K64 = 65536; // number of bytes in 64K
 		$memory_usage = memory_get_usage();
-		if(ini_get('memory_limit') > 0 ){
+		$mem = (string)ini_get('memory_limit');
+		if($mem > 0 ){
 
-			$mem = ini_get('memory_limit');
 			$memory_limit = 0;
 			if (strpos($mem, 'M') !== false) $memory_limit = abs(intval(str_replace(array('M'), '', $mem) * 1024 * 1024));
 			if (strpos($mem, 'G') !== false) $memory_limit = abs(intval(str_replace(array('G'), '', $mem) * 1024 * 1024 * 1024));
@@ -799,7 +872,7 @@ function image_check_memory_usage($img, $max_breedte, $max_hoogte)
 if(!function_exists('ends_with')){
 	function ends_with($haystack, $needle)
 	{
-		return $needle === "" || substr($haystack, -strlen($needle)) === $needle;
+		return $needle === "" || substr((string)$haystack, -strlen((string)$needle)) === (string)$needle;
 	}
 }
 
@@ -837,7 +910,7 @@ function new_thumbnails_creation($targetPath, $targetFile, $name, $current_path,
 	$info['filename'] = fix_filename($info['filename'],$config);
 	if ($config['relative_image_creation'])
 	{
-		foreach ($config['relative_path_from_current_pos'] as $k => $path)
+		if (is_array($config['relative_path_from_current_pos'])) foreach ($config['relative_path_from_current_pos'] as $k => $path)
 		{
 			if ($path != "" && $path[ strlen($path) - 1 ] != "/")
 			{
@@ -860,7 +933,7 @@ function new_thumbnails_creation($targetPath, $targetFile, $name, $current_path,
 	//create fixed thumbs
 	if ($config['fixed_image_creation'])
 	{
-		foreach ($config['fixed_path_from_filemanager'] as $k => $path)
+		if (is_array($config['fixed_path_from_filemanager'])) foreach ($config['fixed_path_from_filemanager'] as $k => $path)
 		{
 			if ($path != "" && $path[ strlen($path) - 1 ] != "/")
 			{
@@ -927,18 +1000,19 @@ function get_file_by_url($url)
 function is_really_writable($dir)
 {
 	$dir = rtrim($dir, '/');
-	// linux, safe off
-	if (DIRECTORY_SEPARATOR == '/' && @ini_get("safe_mode") == false)
+	// On Linux, is_writable() is reliable
+	if (DIRECTORY_SEPARATOR == '/')
 	{
 		return is_writable($dir);
 	}
 
-	// Windows, safe ON. (have to write a file :S)
+	// Windows: have to write a file to test writability
 	if (is_dir($dir))
 	{
 		$dir = $dir . '/' . md5(mt_rand(1, 1000) . mt_rand(1, 1000));
 
-		if (($fp = @fopen($dir, 'ab')) === false)
+		$fp = fopen($dir, 'ab');
+		if ($fp === false)
 		{
 			return false;
 		}
@@ -949,7 +1023,13 @@ function is_really_writable($dir)
 
 		return true;
 	}
-	elseif ( ! is_file($dir) || ($fp = @fopen($dir, 'ab')) === false)
+	elseif ( ! is_file($dir))
+	{
+		return false;
+	}
+
+	$fp = fopen($dir, 'ab');
+	if ($fp === false)
 	{
 		return false;
 	}
@@ -973,7 +1053,7 @@ function is_function_callable($name)
 	{
 		return false;
 	}
-	$disabled = explode(',', ini_get('disable_functions'));
+	$disabled = explode(',', (string)ini_get('disable_functions'));
 
 	return ! in_array($name, $disabled);
 }
@@ -1170,14 +1250,7 @@ function debugger($input, $trace = false, $halt = false)
 
 	if ($trace)
 	{
-		if (is_php('5.3.6'))
-		{
-			$debug = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-		}
-		else
-		{
-			$debug = debug_backtrace(false);
-		}
+		$debug = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
 
 		echo "<br>-----STACK TRACE-----";
 		echo "<pre>";

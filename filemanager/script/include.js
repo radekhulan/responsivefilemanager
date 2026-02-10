@@ -177,6 +177,20 @@ var encodeURL,show_animation,hide_animation,apply,apply_none,apply_img,apply_any
 			{
 				copy_cut_clicked($trigger, 'cut');
 			},
+			delete_file: function($trigger)
+			{
+				var path = $trigger.attr('data-path');
+				bootbox.confirm(jQuery('#lang_confirm_del').val(), jQuery('#cancel').val(), jQuery('#ok').val(), function (result)
+				{
+					if (result == true)
+					{
+						execute_action('delete_file', path, '', '', '');
+						var fil = jQuery('#files_number');
+						fil.text(parseInt(fil.text()) - 1);
+						$trigger.parent().remove();
+					}
+				});
+			},
 			paste: function()
 			{
 				paste_to_this_dir();
@@ -300,6 +314,16 @@ var encodeURL,show_animation,hide_animation,apply,apply_none,apply_img,apply_any
 						options.items.cut = {
 							name: jQuery('#lang_cut').val(),
 							icon: "cut",
+							disabled: false
+						};
+					}
+
+					// delete
+					if (!$trigger.hasClass('directory') && jQuery('#delete_files_allowed').val() == 1)
+					{
+						options.items.delete_file = {
+							name: jQuery('#lang_erase').val(),
+							icon: "trash",
 							disabled: false
 						};
 					}
@@ -682,7 +706,7 @@ var encodeURL,show_animation,hide_animation,apply,apply_none,apply_img,apply_any
 			});
 			jQuery('#fileupload').bind('fileuploadsubmit', function (e, data) {
 				// The example input, doesn't have to be part of the upload form:
-				data.formData = {fldr: jQuery('#sub_folder').val() + jQuery('#fldr_value').val()+(data.files[0].relativePath || data.files[0].webkitRelativePath || '')};
+				data.formData = {fldr: jQuery('#sub_folder').val() + jQuery('#fldr_value').val()+(data.files[0].relativePath || data.files[0].webkitRelativePath || ''), csrf_token: jQuery('#csrf_token').val()};
 			});
 			// upload btn
 			jQuery('.upload-btn').on('click', function ()
@@ -763,8 +787,8 @@ var encodeURL,show_animation,hide_animation,apply,apply_none,apply_img,apply_any
 				{
 					if (jQuery(this).is(':checked'))
 					{
-						jQuery('.grid li').not('.' + li).hide(300);
-						jQuery('.grid li.' + li).show(300);
+						jQuery('.grid li').not('.' + li).not('.dir, .back').hide(300);
+						jQuery('.grid li.' + li + ', .grid li.dir, .grid li.back').show(300);
 						if(typeof(Storage) !== "undefined") {
 							localStorage.setItem("sort", li);
 						}
@@ -830,8 +854,8 @@ var encodeURL,show_animation,hide_animation,apply,apply_none,apply_img,apply_any
 				var liElement = jQuery('#'+li);
 				liElement.addClass("btn-inverse");
 				liElement.find('i').addClass('icon-white');
-				jQuery('.grid li').not('.' + li).hide(300);
-				jQuery('.grid li.' + li).show(300);
+				jQuery('.grid li').not('.' + li).not('.dir, .back').hide(300);
+				jQuery('.grid li.' + li + ', .grid li.dir, .grid li.back').show(300);
 			}
 		}
 		jQuery('.ff-container').on('click','.checkmark',function(e){
