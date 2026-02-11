@@ -14,6 +14,7 @@ This is a modernized fork of [ResponsiveFilemanager](https://github.com/trippo/R
 - **Optional Dark Mode** - Added a dark mode theme that can be enabled via configuration
 - **SVG Icons** - Replaced legacy raster (PNG) icons with clean, scalable SVG icons
 - **Latest TUI Image Editor** - Bundled the newest version of TUI Image Editor for in-browser image editing
+- **Security Hardening** - CSRF token, XSS check, realpath checks
 - **Code Cleanup** - General code cleanup, removed deprecated functions and improved code quality
 
 ### Dark Mode Example
