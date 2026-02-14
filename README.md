@@ -4,7 +4,7 @@
 
 This is a modernized fork of [ResponsiveFilemanager](https://github.com/trippo/ResponsiveFilemanager) by Alberto Peripolli (tr1pp0).
 
-Looking for modern Responsive File Manager alternative? Check new project https://github.com/radekhulan/fileimagemanager for modern, 
+Looking for modern Responsive File Manager alternative? Check new project [FileImageManager](https://github.com/radekhulan/fileimagemanager) for modern, 
 responsive web file manager built with Vue 3 + TypeScript frontend and PHP 8.5 backend.
 
 ## What's New in This Fork
